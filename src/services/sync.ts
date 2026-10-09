@@ -41,8 +41,8 @@ async function pool<T>(items: T[], n: number, fn: (x: T) => Promise<void>): Prom
 }
 
 /** Snapshot one playlist. Returns {skipped: reason} when the read was not trusted (nothing is changed then). */
-export async function syncPlaylist(repo: Repo, yt: YtReader, p: { id: string; title: string }, overrides?: Map<string, Override>, now = () => Date.now() / 1000): Promise<{ skipped?: string }> {
-  await repo.ensurePlaylist(p.id, p.title);
+export async function syncPlaylist(repo: Repo, yt: YtReader, p: { id: string; title: string; thumb?: string | null }, overrides?: Map<string, Override>, now = () => Date.now() / 1000): Promise<{ skipped?: string }> {
+  await repo.ensurePlaylist(p.id, p.title, p.thumb);
   const tracks = await yt.playlistTracks(p.id);
   const stored = await repo.stored(p.id);
   if (!tracks.length && stored.some((s) => s.status === 'ok' || s.status === 'unavailable')) {

@@ -12,7 +12,7 @@ const T = (videoId: string, title: string | null, o: Partial<Track> = {}): Track
 function fakeYt(lists: Record<string, Track[]>, searchResults: Hit[] = []) {
   const calls: string[] = [];
   const yt: YtClient = {
-    libraryPlaylists: async () => Object.keys(lists).map((id) => ({ id, title: 'List ' + id, count: null })),
+    libraryPlaylists: async () => Object.keys(lists).map((id) => ({ id, title: 'List ' + id, count: null, thumb: null })),
     playlistTracks: async (id) => [...lists[id]!],
     search: async (q, type = 'song') => {
       calls.push(`search:${type}:${q}`);

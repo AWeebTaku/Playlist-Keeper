@@ -1,4 +1,6 @@
 import type { ItemRow, PlaylistRow } from '../services/db';
+import { getVersion } from '@tauri-apps/api/app';
+import type { Profile } from '../services/parse';
 import { client, openRepo, restoreSession, runSync, setClient, signOut } from '../services/app';
 import type { Repo } from '../services/db';
 import type { YtClient } from '../services/actions';
@@ -21,6 +23,19 @@ const put = (k: string, v: string) => {
   }
 };
 
+export type PlaylistView = 'list' | 'grid' | 'compact' | 'cards';
+const PLAYLIST_VIEWS: PlaylistView[] = ['list', 'grid', 'compact', 'cards'];
+
+/** The cached profile (name, handle, photo URL): not a secret, kept so the avatar shows instantly. */
+function readProfile(): Profile | null {
+  try {
+    const p = JSON.parse(get('profile') ?? 'null') as Profile | null;
+    return p?.name ? p : null;
+  } catch {
+    return null;
+  }
+}
+
 class Store {
   phase = $state<'boot' | 'connect' | 'ready'>('boot');
   connectError = $state('');
@@ -37,6 +52,11 @@ class Store {
   toasts = $state<{ id: number; text: string; bad: boolean }[]>([]);
   theme = $state<'system' | 'light' | 'dark'>((get('theme') as 'light' | 'dark' | null) ?? 'system');
   view = $state<'list' | 'grid'>(get('view') === 'grid' ? 'grid' : 'list');
+  playlistView = $state<PlaylistView>(PLAYLIST_VIEWS.includes(get('plview') as PlaylistView) ? (get('plview') as PlaylistView) : 'list');
+  collapsed = $state({ playlists: get('c-playlists') === '1', hidden: get('c-hidden') === '1' });
+  profile = $state<Profile | null>(readProfile());
+  profileOpen = $state(false);
+  appVersion = $state('');
 
   private toastId = 0;
 
@@ -119,6 +139,29 @@ class Store {
     else document.documentElement.dataset.theme = t;
   }
 
+  setPlaylistView(v: PlaylistView) {
+    this.playlistView = v;
+    put('plview', v);
+  }
+
+  toggleSection(s: 'playlists' | 'hidden') {
+    this.collapsed[s] = !this.collapsed[s];
+    put(`c-${s}`, this.collapsed[s] ? '1' : '0');
+  }
+
+  /** Refresh name and photo of the signed-in account; the cached copy stays if YouTube does not answer. */
+  async loadProfile() {
+    try {
+      const p = await client().profile();
+      if (p) {
+        this.profile = p;
+        put('profile', JSON.stringify(p));
+      }
+    } catch {
+      /* the avatar falls back to the cached profile or an initial */
+    }
+  }
+
   setView(v: 'list' | 'grid') {
     this.view = v;
     put('view', v);
@@ -129,6 +172,8 @@ class Store {
     try {
       await this.reload();
       this.phase = (await restoreSession()) ? 'ready' : 'connect';
+      void getVersion().then((v) => (this.appVersion = v)).catch(() => undefined);
+      if (this.phase === 'ready') void this.loadProfile();
       if (import.meta.env.PROD) void this.checkUpdate(true); // release builds only
     } catch (e) {
       this.phase = 'connect';
@@ -145,6 +190,7 @@ class Store {
     this.connectError = '';
     this.phase = 'ready';
     await this.reload();
+    void this.loadProfile();
   }
 
   /** Run a sign-in route, showing the error on the Connect screen if it fails. */
@@ -168,6 +214,9 @@ class Store {
   }
   async reconnect() {
     await signOut();
+    this.profileOpen = false;
+    this.profile = null;
+    put('profile', 'null');
     this.phase = 'connect';
   }
 

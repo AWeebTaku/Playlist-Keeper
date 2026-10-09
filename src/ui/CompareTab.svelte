@@ -1,6 +1,11 @@
 <script lang="ts">
   import { addTrack, compareLists, whereElse, type Elsewhere } from '../services/actions';
   import type { ItemRow } from '../services/db';
+  import ArrowsLeftRightIcon from 'phosphor-svelte/lib/ArrowsLeftRightIcon';
+  import MagnifyingGlassIcon from 'phosphor-svelte/lib/MagnifyingGlassIcon';
+  import PlusIcon from 'phosphor-svelte/lib/PlusIcon';
+  import QueueIcon from 'phosphor-svelte/lib/QueueIcon';
+  import Segmented from './Segmented.svelte';
   import TrackRow from './TrackRow.svelte';
   import { artistOf, titleOf } from './util';
   import { store } from './store.svelte';
@@ -49,15 +54,22 @@
 </script>
 
 <div class="bar">
-  <button class="btn sm" class:primary={mode === 'where'} onclick={() => (mode = 'where')}>Where else is each track?</button>
-  <button class="btn sm" class:primary={mode === 'ab'} onclick={() => (mode = 'ab')}>Playlist A vs B</button>
+  <Segmented
+    label="Compare mode"
+    value={mode}
+    onchange={(v) => (mode = v)}
+    options={[
+      { value: 'where', label: 'Where else is each track?', title: 'Where else is each track?', icon: QueueIcon },
+      { value: 'ab', label: 'Playlist A vs B', title: 'Playlist A vs B', icon: ArrowsLeftRightIcon },
+    ]}
+  />
 </div>
 
 {#if mode === 'where'}
   <div class="bar">
-    <label><input type="checkbox" bind:checked={onlyElsewhere} /> Only tracks that are also elsewhere</label>
-    <label><input type="checkbox" bind:checked={includeAuto} /> Include recaps and auto mixes</label>
-    <button class="btn" disabled={busy} onclick={runWhere}>Check</button>
+    <label class="switch"><input type="checkbox" bind:checked={onlyElsewhere} /> Only tracks that are also elsewhere</label>
+    <label class="switch"><input type="checkbox" bind:checked={includeAuto} /> Include recaps and auto mixes</label>
+    <button class="btn primary" disabled={busy} onclick={runWhere}><MagnifyingGlassIcon size={16} weight="bold" />Check</button>
   </div>
   {#if busy}
     <div class="list"><div class="skel"></div><div class="skel"></div></div>
@@ -81,7 +93,7 @@
   <div class="bar">
     <label>A <select bind:value={a}>{#each lists as p (p.id)}<option value={p.id}>{p.title}</option>{/each}</select></label>
     <label>B <select bind:value={b}>{#each lists as p (p.id)}<option value={p.id}>{p.title}</option>{/each}</select></label>
-    <button class="btn" disabled={busy || !b} onclick={runAb}>Compare</button>
+    <button class="btn primary" disabled={busy || !b} onclick={runAb}><ArrowsLeftRightIcon size={16} weight="bold" />Compare</button>
   </div>
   {#if busy}
     <div class="list"><div class="skel"></div><div class="skel"></div></div>
@@ -94,7 +106,7 @@
             {#each col.l.slice(0, 100) as i (i.videoId)}
               <div class="item">
                 <TrackRow videoId={i.videoId} title={titleOf(i)} subtitle={artistOf(i)} duration={i.duration}>
-                  {#if col.to}<button class="btn sm" onclick={() => addTo(col.to, i)}>Add to {col.tag}</button>{/if}
+                  {#if col.to}<button class="btn sm outline" onclick={() => addTo(col.to, i)}><PlusIcon size={14} weight="bold" />Add to {col.tag}</button>{/if}
                 </TrackRow>
               </div>
             {:else}

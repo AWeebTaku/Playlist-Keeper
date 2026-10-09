@@ -117,6 +117,8 @@ export interface LibraryPlaylist {
   title: string;
   /** Track count from the subtitle, if present (may differ from what can be read). */
   count: number | null;
+  /** Cover art URL of the library tile, if any. */
+  thumb: string | null;
 }
 
 export function parseLibraryPlaylists(page: Json): LibraryPlaylist[] {
@@ -127,9 +129,28 @@ export function parseLibraryPlaylists(page: Json): LibraryPlaylist[] {
     const title: string = (r.title?.runs ?? []).map((x: { text: string }) => x.text).join('');
     const sub: string = (r.subtitle?.runs ?? []).map((x: { text: string }) => x.text).join('');
     const n = /([\d,]+)\s+(?:tracks?|songs?)/iu.exec(sub);
-    out.push({ id: browseId.replace(/^VL/u, ''), title, count: n ? Number(n[1]!.replace(/,/gu, '')) : null });
+    const thumbs: { url?: string }[] = r.thumbnailRenderer?.musicThumbnailRenderer?.thumbnail?.thumbnails ?? [];
+    const thumb = thumbs.at(-1)?.url ?? null; // the largest one is listed last
+    out.push({ id: browseId.replace(/^VL/u, ''), title, count: n ? Number(n[1]!.replace(/,/gu, '')) : null, thumb: thumb?.startsWith('https://') ? thumb : null });
   }
   return out;
+}
+
+export interface Profile {
+  name: string;
+  handle: string | null;
+  /** Profile photo URL of the signed-in Google account. */
+  photo: string | null;
+}
+
+/** The signed-in account from YouTube Music's account menu (`/account/account_menu`). */
+export function parseAccountMenu(page: Json): Profile | null {
+  const h = findAll(page, 'activeAccountHeaderRenderer')[0];
+  const name: string | undefined = h?.accountName?.runs?.[0]?.text ?? h?.accountName?.simpleText;
+  if (!name) return null;
+  const photos: { url?: string }[] = h.accountPhoto?.thumbnails ?? [];
+  const photo = photos.at(-1)?.url ?? null;
+  return { name, handle: h.channelHandle?.runs?.[0]?.text ?? null, photo: photo?.startsWith('https://') ? photo : null };
 }
 
 /** True when YouTube answered as if nobody were signed in (the request was accepted but not authenticated). */

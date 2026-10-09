@@ -1,6 +1,9 @@
 <script lang="ts">
   import { addTrack, fullVersions, replaceTrack, type FullVersion } from '../services/actions';
   import type { ItemRow } from '../services/db';
+  import ArrowsCounterClockwiseIcon from 'phosphor-svelte/lib/ArrowsCounterClockwiseIcon';
+  import MagnifyingGlassIcon from 'phosphor-svelte/lib/MagnifyingGlassIcon';
+  import PlusIcon from 'phosphor-svelte/lib/PlusIcon';
   import TrackRow from './TrackRow.svelte';
   import { artistOf, mmss, titleOf } from './util';
   import { store } from './store.svelte';
@@ -50,7 +53,7 @@
 <p class="hint">Clips like anime openings, endings, intros and outros are often a cut of a longer song. Find the full version and add it. Adding keeps the short clip; Replace removes it.</p>
 <div class="bar">
   <label>Shorter than <input type="range" min="30" max="300" step="10" bind:value={max} /> <b class="dur" style="display: inline-block; text-align: left">{mmss(max)}</b></label>
-  <label><input type="checkbox" bind:checked={themedOnly} /> Only titles with opening, ending, intro, outro or theme</label>
+  <label class="switch"><input type="checkbox" bind:checked={themedOnly} /> Only openings, endings, intros, outros and themes</label>
   <span class="grow"></span>
   <label>Add to <select bind:value={target} aria-label="Target playlist">{#each targets as p (p.id)}<option value={p.id}>{p.title}</option>{/each}</select></label>
 </div>
@@ -62,7 +65,7 @@
       {@const r = results[i.videoId]}
       <div class="item">
         <TrackRow videoId={i.videoId} title={titleOf(i)} subtitle={artistOf(i)} duration={i.duration}>
-          <button class="btn sm" disabled={r === 'loading'} onclick={() => find(i)}>{r === 'loading' ? 'Searching...' : 'Find full version'}</button>
+          <button class="btn sm outline" disabled={r === 'loading'} onclick={() => find(i)}><MagnifyingGlassIcon size={14} />{r === 'loading' ? 'Searching...' : 'Find full version'}</button>
         </TrackRow>
         {#if r === 'loading'}
           <div class="sub"><div class="skel" style="height: 40px"></div></div>
@@ -71,8 +74,8 @@
             {#each r.candidates as c (c.videoId)}
               <TrackRow videoId={c.videoId} title={c.title ?? ''} subtitle="{c.artists} / full {mmss(c.duration)} vs clip {mmss(i.duration)} / match {Math.round(c.score * 100)}%" duration={c.duration}>
                 {#if c.inPlaylist}<span class="chip">Already in this playlist</span>{:else if c.elsewhere.length}<span class="chip link">Also in {c.elsewhere.join(', ')}</span>{/if}
-                <button class="btn sm primary" onclick={() => add(c)}>Add</button>
-                <button class="btn sm" disabled={target !== store.selected} title={target !== store.selected ? 'Replace only works when "Add to" is this playlist' : ''} onclick={() => replace(i, c)}>Replace</button>
+                <button class="btn sm primary" onclick={() => add(c)}><PlusIcon size={14} weight="bold" />Add</button>
+                <button class="btn sm outline" disabled={target !== store.selected} title={target !== store.selected ? 'Replace only works when "Add to" is this playlist' : ''} onclick={() => replace(i, c)}><ArrowsCounterClockwiseIcon size={14} />Replace</button>
               </TrackRow>
             {:else}
               <div class="mut" style="padding: 8px 0">No full version found for: {r.queries.join(' | ') || '(no usable title)'}.</div>

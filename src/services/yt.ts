@@ -7,7 +7,7 @@ import type { Hit } from '../core/full';
 import type { Track } from '../core/types';
 import { AuthError, asAuthError } from './errors';
 import { rustFetch } from './http';
-import { continuationToken, isSignedOut, parseLibraryPlaylists, parseTracks, type LibraryPlaylist } from './parse';
+import { continuationToken, isSignedOut, parseAccountMenu, parseLibraryPlaylists, parseTracks, type LibraryPlaylist, type Profile } from './parse';
 import type { YtReader } from './sync';
 
 const baseOptions = () => ({ fetch: rustFetch as typeof fetch, retrieve_player: false });
@@ -36,6 +36,16 @@ export class Yt implements YtReader {
     for (let token = continuationToken(page); token; token = continuationToken(page)) {
       page = await this.browse({ continuation: token });
       each(page);
+    }
+  }
+
+  /** Name, handle and photo of the signed-in account, or null when YouTube does not give them. */
+  async profile(): Promise<Profile | null> {
+    try {
+      const r = await this.yt.actions.execute('/account/account_menu', { client: 'YTMUSIC', parse: false });
+      return parseAccountMenu(r.data);
+    } catch (e) {
+      throw asAuthError(e);
     }
   }
 

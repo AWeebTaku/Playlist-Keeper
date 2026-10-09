@@ -1,36 +1,58 @@
 <script lang="ts">
+  import ArrowsLeftRightIcon from 'phosphor-svelte/lib/ArrowsLeftRightIcon';
+  import ClockIcon from 'phosphor-svelte/lib/ClockIcon';
+  import CopyIcon from 'phosphor-svelte/lib/CopyIcon';
+  import MusicNotesIcon from 'phosphor-svelte/lib/MusicNotesIcon';
+  import SparkleIcon from 'phosphor-svelte/lib/SparkleIcon';
+  import TimerIcon from 'phosphor-svelte/lib/TimerIcon';
+  import WarningIcon from 'phosphor-svelte/lib/WarningIcon';
+  import logo from '../assets/logo.png';
   import CleanTab from './CleanTab.svelte';
   import CompareTab from './CompareTab.svelte';
+  import Cover from './Cover.svelte';
   import DupesTab from './DupesTab.svelte';
   import ItemsTab from './ItemsTab.svelte';
+  import ProfileMenu from './ProfileMenu.svelte';
   import ShortTab from './ShortTab.svelte';
   import { store } from './store.svelte';
+  import { ago, coverUrl } from './util';
 
   const TABS = [
-    ['items', 'Items'],
-    ['short', 'Short tracks'],
-    ['compare', 'Compare'],
-    ['clean', 'Cleanup'],
-    ['dupes', 'Duplicates'],
+    ['items', 'Items', MusicNotesIcon],
+    ['short', 'Short tracks', TimerIcon],
+    ['compare', 'Compare', ArrowsLeftRightIcon],
+    ['clean', 'Cleanup', SparkleIcon],
+    ['dupes', 'Duplicates', CopyIcon],
   ] as const;
   const playlist = $derived(store.playlists.find((p) => p.id === store.selected));
+  const cover = $derived(playlist ? coverUrl(playlist) : null);
 </script>
 
-<div class="top">
-  <h1>{playlist?.title ?? 'Pick a playlist'}</h1>
-  <div class="meta">
-    {#if playlist}{playlist.total} tracks{playlist.missing ? `, ${playlist.missing} greyed out or removed` : ''}{:else}Choose one from the list to begin.{/if}
-  </div>
-  {#if playlist}
-    <div class="tabs" role="tablist">
-      {#each TABS as [id, label] (id)}
-        <button role="tab" aria-selected={store.tab === id} class:on={store.tab === id} onclick={() => (store.tab = id)}>{label}</button>
-      {/each}
-    </div>
-  {/if}
+<div class="topbar glass">
+  <span class="where">{playlist ? 'Playlist' : 'Your library'}</span>
+  <ProfileMenu />
 </div>
 
 {#if playlist}
+  <header class="banner">
+    <div class="banner-bg" style:background-image={cover ? `url("${cover}")` : 'none'}></div>
+    <div class="banner-row">
+      <Cover src={cover} iconSize={56} />
+      <div style="min-width: 0">
+        <h1>{playlist.title}</h1>
+        <div class="chips">
+          <span class="chip"><MusicNotesIcon size={13} /> {playlist.total} tracks</span>
+          {#if playlist.missing}<span class="chip unavailable"><WarningIcon size={13} weight="fill" /> {playlist.missing} greyed out or removed</span>{/if}
+          <span class="chip"><ClockIcon size={13} /> Synced {ago(playlist.lastSync)}</span>
+        </div>
+      </div>
+    </div>
+  </header>
+  <div class="tabs glass" role="tablist">
+    {#each TABS as [id, label, Icon] (id)}
+      <button role="tab" aria-selected={store.tab === id} onclick={() => (store.tab = id)}><Icon size={18} weight={store.tab === id ? 'fill' : 'regular'} /> {label}</button>
+    {/each}
+  </div>
   <section class="panel">
     {#if store.tab === 'items'}<ItemsTab />
     {:else if store.tab === 'short'}<ShortTab />
@@ -38,4 +60,14 @@
     {:else if store.tab === 'clean'}<CleanTab />
     {:else}<DupesTab />{/if}
   </section>
+{:else}
+  <header class="banner empty-banner">
+    <div class="banner-row">
+      <img src={logo} alt="" style="width: 72px; border-radius: 18px" />
+      <div>
+        <h1>Pick a playlist</h1>
+        <p class="mut" style="margin: 0">Choose one from the list on the left. Press <strong>Sync all</strong> first if the list is empty.</p>
+      </div>
+    </div>
+  </header>
 {/if}

@@ -1,0 +1,93 @@
+/*
+ * Design tokens. YouTube Music dark is the default look; light is the same design on white.
+ * Shape rule: buttons, chips, search and segmented controls are pills; cards and popovers 16px; rows 12px; thumbnails 8-10px.
+ * Red is the brand colour. Greyed-out = amber, removed = orange, so red never doubles as a warning colour.
+ * Every text/background pair here is checked by scripts/contrast.mjs (>= 4.5:1, 3:1 for large text).
+ */
+:root {
+  --font: 'Roboto Variable', Roboto, system-ui, -apple-system, 'Segoe UI', 'Noto Sans', 'Helvetica Neue', Arial, sans-serif;
+  --pill: 999px;
+  --r-card: 16px;
+  --r-row: 12px;
+  --r-thumb: 8px;
+
+  /* light */
+  --bg: #f9f9f9;
+  --glass: rgb(255 255 255 / 0.78);
+  --glass-strong: rgb(255 255 255 / 0.94);
+  --surface: rgb(0 0 0 / 0.045);
+  --surface-hover: rgb(0 0 0 / 0.08);
+  --surface-solid: #ffffff;
+  --line: rgb(0 0 0 / 0.1);
+  --fg: #0f0f0f;
+  --mut: #606060;
+  --accent: #cc0f33;
+  --accent-text: #cc0f33;
+  --grad-a: #d01238;
+  --grad-b: #d93a1c;
+  --on-accent: #ffffff;
+  --accent-soft: rgb(204 15 51 / 0.1);
+  --warn: #8f5400;
+  --warn-soft: rgb(190 120 0 / 0.14);
+  --removed: #b03a0b;
+  --removed-soft: rgb(200 80 20 / 0.13);
+  --danger: #b3001f;
+  --on-danger: #ffffff;
+  --glow-a: rgb(224 18 59 / 0.1);
+  --glow-b: rgb(242 69 45 / 0.08);
+  --shadow: 0 1px 2px rgb(0 0 0 / 0.06), 0 12px 32px rgb(0 0 0 / 0.1);
+  --shadow-pop: 0 12px 40px rgb(0 0 0 / 0.18);
+  color-scheme: light;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme='light']) {
+    --bg: #030303;
+    --glass: rgb(22 22 22 / 0.7);
+    --glass-strong: rgb(30 30 30 / 0.92);
+    --surface: rgb(255 255 255 / 0.06);
+    --surface-hover: rgb(255 255 255 / 0.11);
+    --surface-solid: #181818;
+    --line: rgb(255 255 255 / 0.1);
+    --fg: #ffffff;
+    --mut: #aaaaaa;
+    --accent: #ff4d63;
+    --accent-text: #ff6b7d;
+    --accent-soft: rgb(255 77 99 / 0.14);
+    --warn: #ffb340;
+    --warn-soft: rgb(255 179 64 / 0.14);
+    --removed: #ff8f5a;
+    --removed-soft: rgb(255 143 90 / 0.14);
+    --danger: #c4122f;
+    --glow-a: rgb(224 18 59 / 0.26);
+    --glow-b: rgb(242 69 45 / 0.16);
+    --shadow: 0 1px 2px rgb(0 0 0 / 0.4), 0 16px 40px rgb(0 0 0 / 0.45);
+    --shadow-pop: 0 16px 48px rgb(0 0 0 / 0.6);
+    color-scheme: dark;
+  }
+}
+
+:root[data-theme='dark'] {
+  --bg: #030303;
+  --glass: rgb(22 22 22 / 0.7);
+  --glass-strong: rgb(30 30 30 / 0.92);
+  --surface: rgb(255 255 255 / 0.06);
+  --surface-hover: rgb(255 255 255 / 0.11);
+  --surface-solid: #181818;
+  --line: rgb(255 255 255 / 0.1);
+  --fg: #ffffff;
+  --mut: #aaaaaa;
+  --accent: #ff4d63;
+  --accent-text: #ff6b7d;
+  --accent-soft: rgb(255 77 99 / 0.14);
+  --warn: #ffb340;
+  --warn-soft: rgb(255 179 64 / 0.14);
+  --removed: #ff8f5a;
+  --removed-soft: rgb(255 143 90 / 0.14);
+  --danger: #c4122f;
+  --glow-a: rgb(224 18 59 / 0.26);
+  --glow-b: rgb(242 69 45 / 0.16);
+  --shadow: 0 1px 2px rgb(0 0 0 / 0.4), 0 16px 40px rgb(0 0 0 / 0.45);
+  --shadow-pop: 0 16px 48px rgb(0 0 0 / 0.6);
+  color-scheme: dark;
+}

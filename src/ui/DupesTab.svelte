@@ -1,6 +1,8 @@
 <script lang="ts">
   import type { DupGroup } from '../core/dupes';
   import { removeEntries, scanDuplicates } from '../services/actions';
+  import MagnifyingGlassIcon from 'phosphor-svelte/lib/MagnifyingGlassIcon';
+  import TrashIcon from 'phosphor-svelte/lib/TrashIcon';
   import TrackRow from './TrackRow.svelte';
   import { store } from './store.svelte';
 
@@ -56,12 +58,12 @@
 </script>
 
 <p class="hint">
-  <b class="err">Exact</b> is the same video added twice. <b class="err">Likely</b> is the same song, version, artist and length. <b style="color: var(--warn)">Possible</b> has the same title but a different artist or length and is never pre-selected. Covers, remixes, mashups and slowed
+  <b style="color: var(--accent-text)">Exact</b> is the same video added twice. <b style="color: var(--accent-text)">Likely</b> is the same song, version, artist and length. <b style="color: var(--warn)">Possible</b> has the same title but a different artist or length and is never pre-selected. Covers, remixes, mashups and slowed
   versions are never grouped with the original. The radio button marks the copy to keep.
 </p>
 <div class="bar">
-  <button class="btn primary" disabled={busy || !store.selected} onclick={scan}>Scan this playlist</button>
-  <button class="btn danger" disabled={busy || !selected.length} onclick={remove}>{selected.length ? `Remove ${selected.length} selected` : 'Remove selected'}</button>
+  <button class="btn primary" disabled={busy || !store.selected} onclick={scan}><MagnifyingGlassIcon size={16} weight="bold" />Scan this playlist</button>
+  <button class="btn danger" disabled={busy || !selected.length} onclick={remove}><TrashIcon size={16} weight="bold" />{selected.length ? `Remove ${selected.length} selected` : 'Remove selected'}</button>
   <span class="mut">{summary}</span>
 </div>
 

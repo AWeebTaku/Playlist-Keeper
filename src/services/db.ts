@@ -11,6 +11,10 @@ export interface PlaylistRow {
   lastSync: number | null;
   total: number;
   missing: number;
+  /** Cover art URL from YouTube, if known. */
+  thumb: string | null;
+  /** Fallback cover: a playable track of the playlist (its thumbnail is used when there is no `thumb`). */
+  coverVideo: string | null;
 }
 
 export interface ItemRow {
@@ -68,15 +72,16 @@ export class Repo {
 
   // ---- playlists ----
   async playlists(): Promise<PlaylistRow[]> {
-    const rows = await this.sql.select<Raw>(`SELECT p.id, p.title, p.hidden, p.last_sync,
+    const rows = await this.sql.select<Raw>(`SELECT p.id, p.title, p.hidden, p.last_sync, p.thumb,
+      (SELECT video_id FROM items WHERE playlist_id=p.id AND status='ok' ORDER BY position LIMIT 1) cover_video,
       (SELECT count(*) FROM items WHERE playlist_id=p.id AND status!='replaced') total,
       (SELECT count(*) FROM items WHERE playlist_id=p.id AND status IN('unavailable','removed')) missing
       FROM playlists p ORDER BY p.title COLLATE NOCASE`);
-    return rows.map((r) => ({ id: r.id as string, title: r.title as string, hidden: !!r.hidden, lastSync: (r.last_sync as number | null) ?? null, total: r.total as number, missing: r.missing as number }));
+    return rows.map((r) => ({ id: r.id as string, title: r.title as string, hidden: !!r.hidden, lastSync: (r.last_sync as number | null) ?? null, total: r.total as number, missing: r.missing as number, thumb: (r.thumb as string | null) ?? null, coverVideo: (r.cover_video as string | null) ?? null }));
   }
 
-  async ensurePlaylist(id: string, title: string): Promise<void> {
-    await this.sql.execute('INSERT INTO playlists(id,title,last_sync) VALUES(?,?,0) ON CONFLICT(id) DO UPDATE SET title=excluded.title', [id, title]);
+  async ensurePlaylist(id: string, title: string, thumb?: string | null): Promise<void> {
+    await this.sql.execute('INSERT INTO playlists(id,title,last_sync,thumb) VALUES(?,?,0,?) ON CONFLICT(id) DO UPDATE SET title=excluded.title, thumb=COALESCE(excluded.thumb, playlists.thumb)', [id, title, thumb ?? null]);
   }
 
   async touchSynced(id: string, now: number): Promise<void> {

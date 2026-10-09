@@ -33,7 +33,11 @@ runs locally; nothing is sent anywhere except to YouTube itself.
 | **Compare** | *Where else is each track?* lists the other playlists that already hold a track (same video, or same song and version). *Playlist A vs B* shows only in A, in both, only in B, with an Add button on each side. |
 | **Cleanup** | Tidier titles: "(Official Video)", "[Lyrics]", "HD" and similar are removed; remix, cover, slowed, mashup and other versions are kept. Every cleaned name is editable. Cleaned names live only in this app (YouTube cannot rename other people's videos). |
 | **Duplicates** | *Exact* (same video twice), *likely* (same song, version, artist and length, e.g. video vs lyric video) and *possible* (same title, different artist or length; never pre-selected). Covers, remixes, mashups and slowed versions are never grouped with the original. You choose the copy to keep and confirm before anything is removed. |
-| Sidebar | Search playlists, **Hide** playlists you do not care about (they are skipped by sync), **Sync all** with progress, dark/light/system theme, **Check for updates**. |
+| **Sidebar** | A full-width **Sync all** button that fills up as it syncs, playlist search, and your playlists in sections: **Playlists**, and below them **Hidden** when "Show hidden" is on. Hide or unhide a playlist with the eye button on its row (hidden playlists are skipped by sync). Four layouts, chosen with the buttons above the list and remembered: **list with covers**, **cover grid**, **compact list** and **detailed cards**. |
+| **Profile card** | Your Google account photo and name at the top right. Click it for the **theme** switcher (System, Light, Dark), **Check for updates** (with install and restart when one is available) and **Reconnect**. |
+
+The look follows YouTube Music: near-black with a red glow, frosted-glass panels, blurred cover art behind the playlist
+title, Roboto, and a clean white light theme.
 
 Nothing on YouTube is changed without a confirmation dialog (Accept, Replace, Remove). Add and Compare's Add are single
 clicks because they only add.
@@ -234,6 +238,8 @@ JavaScript, runtime (`dependencies`):
 | `@tauri-apps/plugin-opener` | opens music.youtube.com in the default browser |
 | `@tauri-apps/plugin-updater`, `@tauri-apps/plugin-process` | check for, install and restart into updates |
 | `@tauri-apps/plugin-log` | forwards the webview console to the terminal during development |
+| `phosphor-svelte` | the icon set (only the icons that are used end up in the app) |
+| `@fontsource-variable/roboto` | the Roboto font files, bundled so the app looks the same offline on every system (only the Latin subsets are included; other scripts use the system font) |
 
 JavaScript, build and test (`devDependencies`): `@tauri-apps/cli` (build and package), `vite` and
 `@sveltejs/vite-plugin-svelte` (bundler), `svelte` (UI), `typescript`, `svelte-check`, `eslint` with `typescript-eslint`,
@@ -269,7 +275,8 @@ Exact versions are pinned by `package-lock.json` and `src-tauri/Cargo.lock`; alw
 ```
 npm run tauri dev      # run with hot reload
 npm test               # unit tests (Vitest; the database tests use real SQLite via node:sqlite)
-npm run check          # svelte-check + eslint
+npm run check          # svelte-check + eslint + colour-contrast check of the design tokens
+npm run contrast       # only the contrast check (every text/background colour pair, light and dark, WCAG AA)
 cargo clippy --all-targets -- -D warnings   # run inside src-tauri/
 cargo test --lib                            # run inside src-tauri/
 ```
@@ -282,6 +289,10 @@ VITE_SELFTEST=1 npm run tauri dev       # sign-in, library, read a playlist, sea
 VITE_SELFTEST=write npm run tauri dev   # the same, plus: creates ONE throwaway playlist, adds / replaces / removes tracks, deletes it
 VITE_OPEN="My Playlist" VITE_TAB=short npm run tauri dev   # open a playlist and a tab on start
 ```
+
+More look-only options for screenshots: `VITE_THEME=light|dark`, `VITE_VIEW=list|grid|compact|cards` (playlist layout),
+`VITE_MENU=1` (profile card open), `VITE_HIDDEN=1` (show the Hidden section), `VITE_FAKEUPDATE=1` (pretend an update is
+available), `VITE_CONNECT=1` (show the Connect screen without signing out).
 
 (Windows PowerShell: `$env:VITE_SELFTEST = "1"; npm run tauri dev`.) These are compiled out of release builds.
 
@@ -323,9 +334,12 @@ A local build keeps a placeholder update URL, so "Check for updates" in a local 
 - Your login (YouTube cookies) is stored in the OS keychain, never in a file, and is only sent to YouTube.
 - The UI cannot open sockets itself. Every request goes through one Rust command that allows only `https` to
   `youtube.com`, `google.com` and `googleapis.com`. The page's content-security-policy allows images only from
-  `i.ytimg.com` (thumbnails). The app opens no listening ports.
+  YouTube's and Google's image hosts (`*.ytimg.com`, `*.ggpht.com`, `*.googleusercontent.com`, `www.gstatic.com`: track
+  thumbnails, playlist covers and your profile photo). The app opens no listening ports.
 - Rust commands exist only where the capability file (`src-tauri/capabilities/default.json`) grants them.
 - The only other network access is the update check against your GitHub release feed.
+- Your name, handle and profile photo URL (shown in the profile card) are cached in the app's local storage; they are
+  not secrets and are cleared by Reconnect.
 - No telemetry, no accounts, no server of any kind.
 - The saved copy of your playlists (titles, artists, lengths) is a SQLite file in the app config folder:
   Linux `~/.config/dev.playlistkeeper.app/keeper.db`, macOS `~/Library/Application Support/dev.playlistkeeper.app/`,
@@ -353,10 +367,11 @@ A local build keeps a placeholder update URL, so "Check for updates" in a local 
 src/core/       pure TypeScript logic, no I/O, unit-tested: sanitize (title cleaning), dupes, diff (saved copy vs fresh read),
                 compare, score, full (full-version ranking)
 src/services/   YouTube client and parsers, auth, SQLite repository, sync, actions (what the screens do), updater
-src/ui/         Svelte components and design tokens (dark/light, one accent colour, 8px controls / 12px cards)
+src/ui/         Svelte components; styles/tokens.css (colours, shapes), styles/fonts.css, app.css (components)
+src/assets/     the app logo shown in the sidebar and on the Connect screen
 src/dev/        the in-app self-test (development only)
 src-tauri/      Rust shell: keychain, browser cookies, HTTP with allow-list, migrations, updater, capabilities, icons
-scripts/        set-version.mjs (version bump), ci-config.mjs (CI-only config edits)
+scripts/        set-version.mjs (version bump), ci-config.mjs (CI-only config edits), contrast.mjs (colour contrast check)
 tests/          shared test helper (in-memory SQLite)
 .github/        build.yml (checks and unsigned builds), release.yml (publish on tags)
 ```

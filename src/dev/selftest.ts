@@ -108,6 +108,8 @@ export async function selftest(): Promise<void> {
     const logged = /"key":"logged_in","value":"(\d)"/u.exec(text)?.[1];
     await log(`     response: ${text.length} bytes, logged_in=${logged}, top keys=${Object.keys(page).join(',')}, tworow=${text.includes('musicTwoRowItemRenderer')}, signInText=${/sign in/iu.test(text)}`);
   });
+  const who = await step('account profile (avatar)', () => yt.profile());
+  await log(`     profile: name ${who?.name ? 'yes' : 'no'}, handle ${who?.handle ? 'yes' : 'no'}, photo ${who?.photo ? 'yes' : 'no'}`);
   const lib = await step('library playlists', () => yt.libraryPlaylists());
   await log(`     library: ${lib?.length ?? 0} playlists`);
   const small = lib?.find((p) => p.title === '!Queue') ?? lib?.find((p) => (p.count ?? 0) > 0 && (p.count ?? 0) < 400);

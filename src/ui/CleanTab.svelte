@@ -16,7 +16,7 @@
 </script>
 
 <p class="hint">Cleaned names are kept in this app only, because YouTube cannot rename other people's videos. Edit a name and press Enter to save it. Clear it to go back to the automatic one. Words like remix, cover and slowed are kept so different versions stay different.</p>
-<div class="bar"><label><input type="checkbox" bind:checked={changedOnly} /> Only names that changed</label></div>
+<div class="bar"><label class="switch"><input type="checkbox" bind:checked={changedOnly} /> Only names that changed</label></div>
 
 {#if rows.length}
   <div class="card" style="overflow: auto; padding: 0">

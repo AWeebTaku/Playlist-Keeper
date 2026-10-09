@@ -316,12 +316,20 @@ fn default_browser() -> Option<String> {
 // ---- data ------------------------------------------------------------------------------------
 
 fn migrations() -> Vec<Migration> {
-    vec![Migration {
-        version: 1,
-        description: "initial schema",
-        sql: include_str!("../migrations/001_init.sql"),
-        kind: MigrationKind::Up,
-    }]
+    vec![
+        Migration {
+            version: 1,
+            description: "initial schema",
+            sql: include_str!("../migrations/001_init.sql"),
+            kind: MigrationKind::Up,
+        },
+        Migration {
+            version: 2,
+            description: "playlist cover art",
+            sql: include_str!("../migrations/002_playlist_thumb.sql"),
+            kind: MigrationKind::Up,
+        },
+    ]
 }
 
 #[cfg_attr(mobile, tauri::mobile_entry_point)]

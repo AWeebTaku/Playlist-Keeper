@@ -9,7 +9,7 @@ const T = (videoId: string, title: string | null, o: Partial<Track> = {}): Track
 
 function fake(lists: Record<string, Track[] | Error>): YtReader {
   return {
-    libraryPlaylists: async () => Object.keys(lists).map((id) => ({ id, title: 'List ' + id, count: null })),
+    libraryPlaylists: async () => Object.keys(lists).map((id) => ({ id, title: 'List ' + id, count: null, thumb: id === 'P' ? 'https://i.ytimg.com/pl_c/cover.jpg' : null })),
     playlistTracks: async (id) => {
       const v = lists[id]!;
       if (v instanceof Error) throw v;
@@ -92,5 +92,24 @@ describe('overrides and replaced items', () => {
     await repo.forget('P');
     expect((await repo.playlists()).map((p) => p.id)).toEqual(['Q']);
     expect(await repo.items('P')).toEqual([]);
+  });
+
+  it('stores cover art, keeps it when a later read has none, and offers a track cover as fallback', async () => {
+    const repo = new Repo(memorySql());
+    await syncAll(repo, fake({ P: [T('a', 'A'), T('b', 'B')], Q: [T('c', 'C', { available: false })] }));
+    const lists = Object.fromEntries((await repo.playlists()).map((p) => [p.id, p]));
+    expect(lists.P).toMatchObject({ thumb: 'https://i.ytimg.com/pl_c/cover.jpg', coverVideo: 'a' });
+    expect(lists.Q).toMatchObject({ thumb: null, coverVideo: null }); // nothing playable to use as a cover
+    await repo.ensurePlaylist('P', 'List P', null);
+    expect((await repo.playlists()).find((p) => p.id === 'P')!.thumb).toBe('https://i.ytimg.com/pl_c/cover.jpg');
+  });
+
+  it('migration 2 upgrades a database created by the first release without losing anything', async () => {
+    const sql = memorySql(1); // what the released app has today
+    await sql.execute("INSERT INTO playlists(id,title,last_sync,hidden) VALUES('X','Old',5,1)");
+    await sql.execute("INSERT INTO items(playlist_id,video_id,title,artists,duration,position,status) VALUES('X','v','Song','Someone',100,0,'unavailable')");
+    const { readFileSync } = await import('node:fs');
+    sql.raw.exec(readFileSync(new URL('../../src-tauri/migrations/002_playlist_thumb.sql', import.meta.url), 'utf8'));
+    expect(await new Repo(sql).playlists()).toEqual([{ id: 'X', title: 'Old', hidden: true, lastSync: 5, total: 1, missing: 1, thumb: null, coverVideo: null }]);
   });
 });

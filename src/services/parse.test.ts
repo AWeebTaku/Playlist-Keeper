@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { continuationToken, isSignedOut, parseDuration, parseLibraryPlaylists, parseTracks } from './parse';
+import { continuationToken, isSignedOut, parseAccountMenu, parseDuration, parseLibraryPlaylists, parseTracks } from './parse';
 
 const run = (text: string, navigationEndpoint?: object) => ({ text, ...(navigationEndpoint ? { navigationEndpoint } : {}) });
 const page = (pageType: string) => ({ browseEndpoint: { browseEndpointContextSupportedConfigs: { browseEndpointContextMusicConfig: { pageType } } } });
@@ -59,10 +59,14 @@ describe('parseLibraryPlaylists', () => {
   it('skips the New playlist tile and strips the VL prefix', () => {
     const page = { items: [
       { musicTwoRowItemRenderer: { title: { runs: [run('New playlist')] } } },
-      { musicTwoRowItemRenderer: { title: { runs: [run('!Music1')] }, subtitle: { runs: [run('Me'), run(' • '), run('4,998 tracks')] }, navigationEndpoint: { browseEndpoint: { browseId: 'VLPLabc' } } } },
+      { musicTwoRowItemRenderer: { title: { runs: [run('!Music1')] }, subtitle: { runs: [run('Me'), run(' • '), run('4,998 tracks')] }, navigationEndpoint: { browseEndpoint: { browseId: 'VLPLabc' } },
+        thumbnailRenderer: { musicThumbnailRenderer: { thumbnail: { thumbnails: [{ url: 'https://i.ytimg.com/small.jpg' }, { url: 'https://i.ytimg.com/large.jpg' }] } } } } },
       { musicTwoRowItemRenderer: { title: { runs: [run('Episodes for later')] }, navigationEndpoint: { browseEndpoint: { browseId: 'VLSE' } } } },
     ] };
-    expect(parseLibraryPlaylists(page)).toEqual([{ id: 'PLabc', title: '!Music1', count: 4998 }, { id: 'SE', title: 'Episodes for later', count: null }]);
+    expect(parseLibraryPlaylists(page)).toEqual([
+      { id: 'PLabc', title: '!Music1', count: 4998, thumb: 'https://i.ytimg.com/large.jpg' }, // the largest thumbnail
+      { id: 'SE', title: 'Episodes for later', count: null, thumb: null },
+    ]);
   });
 });
 
@@ -72,5 +76,18 @@ describe('isSignedOut', () => {
     expect(isSignedOut(page('0'))).toBe(true);
     expect(isSignedOut(page('1'))).toBe(false);
     expect(isSignedOut({})).toBe(false); // continuation pages carry no flag
+  });
+});
+
+describe('parseAccountMenu', () => {
+  const menu = (header: object) => ({ actions: [{ openPopupAction: { popup: { multiPageMenuRenderer: { header: { activeAccountHeaderRenderer: header } } } } }] });
+  it('reads name, handle and the largest https photo', () => {
+    const p = parseAccountMenu(menu({ accountName: { runs: [run('Sam Example')] }, channelHandle: { runs: [run('@samexample')] }, accountPhoto: { thumbnails: [{ url: 'https://yt4.ggpht.com/small' }, { url: 'https://yt4.ggpht.com/large' }] } }));
+    expect(p).toEqual({ name: 'Sam Example', handle: '@samexample', photo: 'https://yt4.ggpht.com/large' });
+  });
+  it('copes with a missing handle or photo, ignores non-https photos, and returns null without a name', () => {
+    expect(parseAccountMenu(menu({ accountName: { simpleText: 'Only Name' } }))).toEqual({ name: 'Only Name', handle: null, photo: null });
+    expect(parseAccountMenu(menu({ accountName: { runs: [run('X')] }, accountPhoto: { thumbnails: [{ url: 'http://insecure/p' }] } }))!.photo).toBeNull();
+    expect(parseAccountMenu({})).toBeNull();
   });
 });
