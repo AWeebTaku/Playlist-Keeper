@@ -7,10 +7,10 @@
     title: string;
     icon: Component<{ size?: number | string; weight?: 'regular' | 'fill' | 'bold' }>;
   }
-  let { options, value, onchange, label, full = false }: { options: Option[]; value: T; onchange: (v: T) => void; label: string; full?: boolean } = $props();
+  let { options, value, onchange, label, full = false, compact = false }: { options: Option[]; value: T; onchange: (v: T) => void; label: string; full?: boolean; compact?: boolean } = $props();
 </script>
 
-<div class="seg" class:full role="radiogroup" aria-label={label}>
+<div class="seg" class:full class:compact role="radiogroup" aria-label={label}>
   {#each options as o (o.value)}
     {@const Icon = o.icon}
     <button type="button" role="radio" aria-checked={o.value === value} title={o.title} aria-label={o.label ? undefined : o.title} onclick={() => onchange(o.value)}>

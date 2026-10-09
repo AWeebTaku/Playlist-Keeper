@@ -17,6 +17,15 @@ export type NewTrack = { videoId: string; title: string | null; artists: string;
 
 const nowSeconds = () => Date.now() / 1000;
 
+// ---- library -----------------------------------------------------------------------------------
+
+/** Read only the library list (not the tracks) and save every playlist's title and cover. Cheap enough to run at start. */
+export async function refreshLibrary(repo: Repo, yt: YtClient): Promise<number> {
+  const list = await yt.libraryPlaylists();
+  await repo.upsertLibrary(list);
+  return list.length;
+}
+
 // ---- replacements for greyed-out entries ----------------------------------------------------
 
 export interface Replacement extends NewTrack {

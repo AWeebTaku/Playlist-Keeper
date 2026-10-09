@@ -33,10 +33,11 @@ runs locally; nothing is sent anywhere except to YouTube itself.
 | **Compare** | *Where else is each track?* lists the other playlists that already hold a track (same video, or same song and version). *Playlist A vs B* shows only in A, in both, only in B, with an Add button on each side. |
 | **Cleanup** | Tidier titles: "(Official Video)", "[Lyrics]", "HD" and similar are removed; remix, cover, slowed, mashup and other versions are kept. Every cleaned name is editable. Cleaned names live only in this app (YouTube cannot rename other people's videos). |
 | **Duplicates** | *Exact* (same video twice), *likely* (same song, version, artist and length, e.g. video vs lyric video) and *possible* (same title, different artist or length; never pre-selected). Covers, remixes, mashups and slowed versions are never grouped with the original. You choose the copy to keep and confirm before anything is removed. |
-| **Sidebar** | A full-width **Sync all** button that fills up as it syncs, playlist search, and your playlists in sections: **Playlists**, and below them **Hidden** when "Show hidden" is on. Hide or unhide a playlist with the eye button on its row (hidden playlists are skipped by sync). Four layouts, chosen with the buttons above the list and remembered: **list with covers**, **cover grid**, **compact list** and **detailed cards**. |
-| **Profile card** | Your Google account photo and name at the top right. Click it for the **theme** switcher (System, Light, Dark), **Check for updates** (with install and restart when one is available) and **Reconnect**. |
+| **Sidebar** | A full-width **Sync all** button that fills up as it syncs, playlist search, and your playlists in sections: **Playlists**, and below them **Hidden** when "Show hidden" is on. Hide or unhide a playlist with the eye button on its row (hidden playlists are skipped by sync). The **Hidden** button next to the layout buttons shows or hides that section. Four layouts, chosen with the buttons above the list and remembered: **list with covers**, **cover grid**, **compact list** and **detailed cards**. |
+| **Home** | The start page: a greeting, your totals (playlists, tracks saved, greyed out or removed, last synced), a **Needs attention** list of the playlists with the most lost tracks, and a Sync button that stands out when your last sync is more than a day old. Click the logo or **Home** in the sidebar to return to it. |
+| **Profile card** | Your Google account photo and name at the top right. Click it for the **theme** switcher (System, Light, Dark), **Check for updates** (with install and restart when one is available), **Reconnect** (use another browser or account; your current login stays until the new one works) and **Log out** (removes the saved login; your saved playlist history stays on this computer). |
 
-The look follows YouTube Music: near-black with a red glow, frosted-glass panels, blurred cover art behind the playlist
+The look follows YouTube Music: near-black with a soft rose-coral glow, frosted-glass panels, blurred cover art behind the playlist
 title, Roboto, and a clean white light theme.
 
 Nothing on YouTube is changed without a confirmation dialog (Accept, Replace, Remove). Add and Compare's Add are single
@@ -91,6 +92,7 @@ tokens, so it was dropped.
   saved copy. A track YouTube greys out is marked *Greyed out* but keeps its saved title and artist; a track that is no
   longer listed is marked *Removed*. A playlist that comes back empty while the saved copy is not is treated as a failed
   read, never as "everything was removed". Auto-generated mixes that cannot be read are skipped and reported.
+- **Covers and titles** are refreshed in the background every time the app starts, from the library list alone (no tracks are read), so new playlists and their cover art appear without a full sync.
 - **Cleaning** removes packaging words (official video, lyrics, HD, ...) and splits `Artist - Title` when the uploader is
   a channel. Anything else in brackets counts as a *version* (remix, cover, slowed, an unknown label), so two different
   versions are never merged. A missed duplicate is cheaper than a wrongly removed track.
@@ -290,7 +292,12 @@ VITE_SELFTEST=write npm run tauri dev   # the same, plus: creates ONE throwaway 
 VITE_OPEN="My Playlist" VITE_TAB=short npm run tauri dev   # open a playlist and a tab on start
 ```
 
-More look-only options for screenshots: `VITE_THEME=light|dark`, `VITE_VIEW=list|grid|compact|cards` (playlist layout),
+Look-and-feel check without YouTube, Tauri or any personal data: run `npm run dev` and open
+`http://127.0.0.1:1420/?mock=1` in a browser (dev builds only). It fills the app with fake playlists and tracks. Add
+`&theme=dark|light`, `&view=list|grid|compact|cards`, `&open=Late%20Night%20Drive`, `&tab=items|short|compare|clean|dupes`,
+`&menu=1`, `&hidden=1`, `&update=1`, `&empty=1`, `&screen=connect|connect-back`. Headless Chrome can screenshot these pages.
+
+More look-only options inside the real app: `VITE_THEME=light|dark`, `VITE_VIEW=list|grid|compact|cards` (playlist layout),
 `VITE_MENU=1` (profile card open), `VITE_HIDDEN=1` (show the Hidden section), `VITE_FAKEUPDATE=1` (pretend an update is
 available), `VITE_CONNECT=1` (show the Connect screen without signing out).
 

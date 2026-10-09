@@ -3,7 +3,7 @@ import { getVersion } from '@tauri-apps/api/app';
 import type { Profile } from '../services/parse';
 import { client, openRepo, restoreSession, runSync, setClient, signOut } from '../services/app';
 import type { Repo } from '../services/db';
-import type { YtClient } from '../services/actions';
+import { refreshLibrary, type YtClient } from '../services/actions';
 import { AuthError, messageOf } from '../services/errors';
 import { checkForUpdate, type Available } from '../services/updater';
 import { signInWithBrowserCookies, signInWithPastedCookie } from '../services/auth';
@@ -56,6 +56,8 @@ class Store {
   collapsed = $state({ playlists: get('c-playlists') === '1', hidden: get('c-hidden') === '1' });
   profile = $state<Profile | null>(readProfile());
   profileOpen = $state(false);
+  /** True when the Connect screen was opened by Reconnect and a working login still exists (so Back is offered). */
+  canGoBack = $state(false);
   appVersion = $state('');
 
   private toastId = 0;
@@ -169,11 +171,20 @@ class Store {
 
   async boot() {
     if (this.theme !== 'system') document.documentElement.dataset.theme = this.theme;
+    if (import.meta.env.DEV && location.search.includes('mock=1')) {
+      // look-and-feel harness with fake data (see src/dev/mock.ts); never used in release builds
+      const { applyMock } = await import('../dev/mock');
+      applyMock(this, new URLSearchParams(location.search));
+      return;
+    }
     try {
       await this.reload();
       this.phase = (await restoreSession()) ? 'ready' : 'connect';
       void getVersion().then((v) => (this.appVersion = v)).catch(() => undefined);
-      if (this.phase === 'ready') void this.loadProfile();
+      if (this.phase === 'ready') {
+        void this.loadProfile();
+        void this.refreshCovers();
+      }
       if (import.meta.env.PROD) void this.checkUpdate(true); // release builds only
     } catch (e) {
       this.phase = 'connect';
@@ -189,8 +200,10 @@ class Store {
     setClient(client);
     this.connectError = '';
     this.phase = 'ready';
+    this.canGoBack = false;
     await this.reload();
     void this.loadProfile();
+    void this.refreshCovers();
   }
 
   /** Run a sign-in route, showing the error on the Connect screen if it fails. */
@@ -212,12 +225,53 @@ class Store {
   signInPasted(text: string) {
     return this.connect(() => signInWithPastedCookie(text));
   }
-  async reconnect() {
+  /** Show the Connect screen without touching the current login; Back returns to the app. */
+  reconnect() {
+    this.profileOpen = false;
+    this.connectError = '';
+    this.canGoBack = true;
+    this.phase = 'connect';
+  }
+
+  cancelReconnect() {
+    this.connectError = '';
+    this.canGoBack = false;
+    this.phase = 'ready';
+  }
+
+  /** Remove the saved login and show the Connect screen. The saved playlist history stays on this computer. */
+  async logout() {
+    if (!(await this.ask('Log out?', 'Your saved playlist history stays on this computer. You will need to sign in again.', 'Log out'))) return;
     await signOut();
     this.profileOpen = false;
     this.profile = null;
     put('profile', 'null');
+    this.update = null;
+    this.selected = null;
+    this.items = [];
+    this.canGoBack = false;
+    this.connectError = '';
     this.phase = 'connect';
+    this.toast('Logged out');
+  }
+
+  goHome() {
+    this.selected = null;
+    this.items = [];
+    this.profileOpen = false;
+  }
+
+  /** Fetch the library list (titles and covers) without reading any tracks. A signed-out answer sends the user to Connect. */
+  async refreshCovers() {
+    try {
+      await refreshLibrary(await openRepo(), client());
+      await this.reload();
+    } catch (e) {
+      if (e instanceof AuthError) {
+        this.connectError = e.message;
+        this.phase = 'connect';
+      } /* offline or a hiccup: the saved covers stay */
+    }
   }
 
   async select(id: string) {

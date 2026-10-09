@@ -67,6 +67,7 @@ input[type='checkbox'], input[type='radio'], input[type='range'] { accent-color:
 
 /* segmented control */
 .seg { display: inline-flex; padding: 3px; gap: 2px; background: var(--surface); border-radius: var(--pill); }
+.seg.compact button { min-width: 32px; padding: 0 8px; }
 .seg button {
   display: inline-flex; align-items: center; justify-content: center; gap: 6px; min-height: 30px; min-width: 34px; padding: 0 12px;
   border: 0; border-radius: var(--pill); background: transparent; color: var(--mut); cursor: pointer; font-weight: 500; font-size: 13px;
@@ -98,14 +99,23 @@ input[type='checkbox'], input[type='radio'], input[type='range'] { accent-color:
 
 /* sidebar */
 aside.side { display: flex; flex-direction: column; min-width: 0; min-height: 0; border-right: 1px solid var(--line); background: var(--glass); backdrop-filter: blur(18px) saturate(1.4); -webkit-backdrop-filter: blur(18px) saturate(1.4); }
-.brand { display: flex; align-items: center; gap: 10px; padding: 18px 18px 6px; font-size: 18px; font-weight: 600; letter-spacing: -0.02em; }
+.brand { padding: 16px 14px 4px; font-size: 18px; font-weight: 600; letter-spacing: -0.02em; }
+.brand .brand-btn { padding: 4px 6px; border-radius: var(--r-row); }
+.brand .brand-btn:hover { background: var(--surface); }
 .brand img { width: 30px; height: 30px; border-radius: 8px; }
 .side-tools { display: grid; gap: 12px; padding: 12px 16px 8px; }
 .sync { position: relative; overflow: hidden; width: 100%; min-height: 46px; font-size: 15px; }
 .sync .fill { position: absolute; inset: 0 auto 0 0; width: var(--p, 0%); background: rgb(255 255 255 / 0.28); transition: width 0.3s; pointer-events: none; }
 .sync > span { position: relative; display: inline-flex; align-items: center; gap: 8px; }
 .sync-note { min-height: 18px; color: var(--mut); font-size: 12px; margin-top: -4px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-.view-row { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 8px 12px; }
+.view-row { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+.btn.toggle { min-height: 36px; padding: 0 12px; gap: 6px; }
+.btn.toggle[aria-pressed='true'] { background: var(--accent-soft); color: var(--accent-text); }
+.btn.toggle .n { font-size: 12px; opacity: 0.85; }
+.nav-home { display: flex; align-items: center; gap: 12px; width: 100%; min-height: 40px; margin: 2px 0 6px; padding: 0 10px; border: 0; border-radius: var(--r-row); background: transparent; color: var(--fg); font-weight: 500; cursor: pointer; text-align: left; transition: background 0.15s; }
+.nav-home:hover { background: var(--surface); }
+.nav-home.on { background: var(--accent-soft); color: var(--accent-text); }
+.brand-btn { display: flex; align-items: center; gap: 10px; padding: 0; border: 0; background: none; color: inherit; font: inherit; letter-spacing: inherit; cursor: pointer; }
 @keyframes spin { to { transform: rotate(360deg); } }
 .spin { animation: spin 1s linear infinite; }
 
@@ -148,11 +158,14 @@ aside.side { display: flex; flex-direction: column; min-width: 0; min-height: 0;
 main { position: relative; min-width: 0; min-height: 0; overflow: auto; }
 .topbar { position: sticky; top: 0; z-index: 20; display: flex; align-items: center; justify-content: space-between; gap: 12px; height: 60px; padding: 0 24px; }
 .topbar .where { color: var(--mut); font-size: 13px; }
-.avatar { position: relative; display: inline-grid; place-items: center; width: 38px; height: 38px; padding: 0; border: 2px solid transparent; border-radius: 50%; background: linear-gradient(135deg, var(--grad-a), var(--grad-b)); color: #fff; font-weight: 600; cursor: pointer; overflow: hidden; transition: box-shadow 0.15s, transform 0.12s; }
-.avatar:hover { box-shadow: 0 0 0 3px var(--accent-soft); }
+/* the button (focus ring, hover halo) and the circle inside it are separate: the circle fills the button exactly */
+.avatar-btn { display: inline-grid; place-items: center; width: 40px; height: 40px; padding: 0; border: 0; border-radius: 50%; background: none; cursor: pointer; transition: box-shadow 0.15s, transform 0.12s; }
+.avatar-btn:hover, .avatar-btn[aria-expanded='true'] { box-shadow: 0 0 0 3px var(--accent-soft); }
+.avatar-btn:active { transform: scale(0.95); }
+.avatar { position: relative; display: grid; place-items: center; width: 100%; height: 100%; aspect-ratio: 1; border-radius: 50%; overflow: hidden; background: linear-gradient(135deg, var(--grad-a), var(--grad-b)); color: #fff; font-weight: 600; line-height: 1; user-select: none; }
 .avatar img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
-.avatar.lg { width: 60px; height: 60px; font-size: 24px; cursor: default; }
-.avatar.lg:hover { box-shadow: none; }
+.avatar::after { content: ''; position: absolute; inset: 0; border-radius: 50%; box-shadow: inset 0 0 0 2px rgb(255 255 255 / 0.2); pointer-events: none; }
+.avatar.lg { width: 60px; height: 60px; flex: none; font-size: 24px; }
 
 .popover { position: absolute; right: 24px; top: 56px; z-index: 40; width: 320px; padding: 16px; border: 1px solid var(--line); border-radius: var(--r-card); background: var(--glass-strong); backdrop-filter: blur(24px) saturate(1.4); -webkit-backdrop-filter: blur(24px) saturate(1.4); box-shadow: var(--shadow-pop); animation: pop 0.14s ease-out; transform-origin: top right; }
 @keyframes pop { from { opacity: 0; transform: scale(0.96) translateY(-4px); } }
@@ -242,3 +255,27 @@ th { color: var(--mut); font-weight: 500; font-size: 13px; }
 }
 @media (prefers-reduced-motion: reduce) { *, *::before, *::after { animation: none !important; transition: none !important; } }
 @supports not (backdrop-filter: blur(1px)) { .glass, aside.side, .popover, .sheet, .toast { background: var(--surface-solid); } }
+
+/* ---------- home ---------- */
+.home { padding: 16px 24px 64px; display: grid; gap: 28px; }
+.home-hero { position: relative; isolation: isolate; overflow: hidden; display: flex; align-items: center; gap: 22px; padding: 28px; border: 1px solid var(--line); border-radius: 24px; background: linear-gradient(135deg, var(--accent-soft), transparent 70%), var(--glass); }
+.home-hero::before { content: ''; position: absolute; z-index: -1; width: 340px; height: 340px; right: -80px; top: -140px; border-radius: 50%; background: radial-gradient(closest-side, var(--glow-a), transparent); }
+.home-hero .avatar { width: 72px; height: 72px; font-size: 30px; flex: none; }
+.home-hero h1 { margin: 0 0 4px; font-size: 30px; line-height: 1.15; letter-spacing: -0.03em; }
+.home-hero p { margin: 0; color: var(--mut); max-width: 56ch; }
+.home-hero .cta { margin-left: auto; flex: none; }
+.stats { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 14px; }
+.stat { display: grid; gap: 4px; padding: 18px; border-radius: var(--r-card); background: var(--surface); border: 1px solid var(--line); }
+.steps { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 14px; }
+.step { display: grid; gap: 6px; align-content: start; padding: 18px; border-radius: var(--r-card); background: var(--surface); border: 1px solid var(--line); }
+.step .ico-wrap, .stat .ico-wrap { display: inline-grid; place-items: center; width: 36px; height: 36px; border-radius: 50%; background: var(--accent-soft); color: var(--accent-text); margin-bottom: 8px; }
+.stat.warn .ico-wrap { background: var(--warn-soft); color: var(--warn); }
+.stat .v { font-size: 28px; font-weight: 600; letter-spacing: -0.03em; line-height: 1.1; }
+.stat .l { color: var(--mut); font-size: 13px; }
+.home h2 { margin: 0 0 12px; font-size: 18px; }
+.attn { display: grid; gap: 6px; }
+.attn button { display: flex; align-items: center; gap: 14px; width: 100%; padding: 10px 14px; border: 0; border-radius: var(--r-row); background: var(--surface); color: var(--fg); text-align: left; cursor: pointer; transition: background 0.15s; }
+.attn button:hover { background: var(--surface-hover); }
+.attn .cover { width: 48px; }
+.attn .x { flex: 1; min-width: 0; }
+@media (max-width: 900px) { .steps { grid-template-columns: 1fr; } .stats { grid-template-columns: repeat(2, minmax(0, 1fr)); } .home-hero { flex-direction: column; align-items: flex-start; } .home-hero .cta { margin-left: 0; } }

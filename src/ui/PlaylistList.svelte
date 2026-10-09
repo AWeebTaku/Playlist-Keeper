@@ -7,7 +7,7 @@
   import type { PlaylistRow } from '../services/db';
   import Cover from './Cover.svelte';
   import { store } from './store.svelte';
-  import { ago, coverUrl } from './util';
+  import { ago, coverUrls } from './util';
 
   const match = (p: PlaylistRow) => !store.query || p.title.toLowerCase().includes(store.query.toLowerCase());
   const shown = $derived(store.playlists.filter((p) => !p.hidden && match(p)));
@@ -39,7 +39,7 @@
       </span>
       {@render hideButton(p)}
     {:else if view === 'grid'}
-      <Cover src={coverUrl(p)} iconSize={32} />
+      <Cover srcs={coverUrls(p)} iconSize={32} />
       {#if p.missing}<span class="badge corner" title="{p.missing} greyed out or removed">{p.missing}</span>{/if}
       {@render hideButton(p)}
       <span class="x">
@@ -47,7 +47,7 @@
         <div class="s">{p.total} tracks</div>
       </span>
     {:else if view === 'cards'}
-      <Cover src={coverUrl(p)} iconSize={26} />
+      <Cover srcs={coverUrls(p)} iconSize={26} />
       <span class="x">
         <div class="t">{p.title}</div>
         <div class="s"><span>{p.total} tracks</span>{#if p.missing}<span class="chip unavailable"><WarningIcon size={12} weight="fill" />{p.missing} lost</span>{/if}</div>
@@ -55,7 +55,7 @@
       </span>
       {@render hideButton(p)}
     {:else}
-      <Cover src={coverUrl(p)} />
+      <Cover srcs={coverUrls(p)} />
       <span class="x">
         <div class="t">{p.title}</div>
         <div class="s"><span>{p.total} tracks</span>{#if p.missing}<span class="badge" title="{p.missing} greyed out or removed">{p.missing}</span>{/if}</div>

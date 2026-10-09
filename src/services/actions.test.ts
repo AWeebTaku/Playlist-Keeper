@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest';
 import { memorySql } from '../../tests/nodesql';
 import type { Hit } from '../core/full';
 import type { Track } from '../core/types';
-import { addTrack, compareLists, findReplacements, fullVersions, removeEntries, replaceTrack, scanDuplicates, whereElse, type YtClient } from './actions';
+import { addTrack, compareLists, refreshLibrary, findReplacements, fullVersions, removeEntries, replaceTrack, scanDuplicates, whereElse, type YtClient } from './actions';
 import { Repo } from './db';
 import { syncAll } from './sync';
 
@@ -119,5 +119,17 @@ describe('fullVersions', () => {
     expect(r.queries[0]).toBe('Renegade GANGSTA.');
     expect(r.candidates.map((c) => c.videoId)).toEqual(['full']); // 100s is not clearly longer than a 90s clip
     expect(r.candidates[0]).toMatchObject({ inPlaylist: false, elsewhere: ['List Q'] });
+  });
+});
+
+describe('refreshLibrary', () => {
+  it('saves covers for every playlist by reading only the library list, never the tracks', async () => {
+    const repo = new Repo(memorySql());
+    const f = fakeYt({ A: [T('a', 'A')], B: [T('b', 'B')] });
+    let trackReads = 0;
+    const yt: YtClient = { ...f.yt, libraryPlaylists: async () => [{ id: 'A', title: 'List A', count: 1, thumb: 'https://i.ytimg.com/pl_c/a.jpg' }, { id: 'B', title: 'List B', count: 1, thumb: null }], playlistTracks: async () => { trackReads++; return []; } };
+    expect(await refreshLibrary(repo, yt)).toBe(2);
+    expect(trackReads).toBe(0);
+    expect((await repo.playlists()).map((p) => [p.id, p.thumb])).toEqual([['A', 'https://i.ytimg.com/pl_c/a.jpg'], ['B', null]]);
   });
 });

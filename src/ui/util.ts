@@ -7,8 +7,8 @@ export const titleOf = (i: ItemRow) => i.cleanTitle || i.title || '(no saved tit
 export const artistOf = (i: ItemRow) => i.cleanArtist || i.artists || 'Unknown artist';
 export const hideBroken = (e: Event) => ((e.currentTarget as HTMLImageElement).style.visibility = 'hidden');
 
-/** Cover art of a playlist: YouTube's tile if known, else the thumbnail of its first playable track. */
-export const coverUrl = (p: Pick<PlaylistRow, 'thumb' | 'coverVideo'>): string | null => p.thumb ?? (p.coverVideo ? thumb(p.coverVideo) : null);
+/** Cover candidates of a playlist, best first: YouTube's own cover, then the thumbnail of its first playable track. */
+export const coverUrls = (p: Pick<PlaylistRow, 'thumb' | 'coverVideo'>): string[] => [p.thumb, p.coverVideo ? thumb(p.coverVideo) : null].filter((u): u is string => !!u);
 
 /** "just now", "5 min ago", "3 h ago", "2 days ago", or "never". */
 export function ago(seconds: number | null, now = Date.now() / 1000): string {

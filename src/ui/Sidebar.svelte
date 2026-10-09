@@ -2,6 +2,9 @@
   import ArrowsClockwiseIcon from 'phosphor-svelte/lib/ArrowsClockwiseIcon';
   import CardsIcon from 'phosphor-svelte/lib/CardsIcon';
   import CircleNotchIcon from 'phosphor-svelte/lib/CircleNotchIcon';
+  import EyeIcon from 'phosphor-svelte/lib/EyeIcon';
+  import EyeSlashIcon from 'phosphor-svelte/lib/EyeSlashIcon';
+  import HouseIcon from 'phosphor-svelte/lib/HouseIcon';
   import ListBulletsIcon from 'phosphor-svelte/lib/ListBulletsIcon';
   import ListDashesIcon from 'phosphor-svelte/lib/ListDashesIcon';
   import MagnifyingGlassIcon from 'phosphor-svelte/lib/MagnifyingGlassIcon';
@@ -17,11 +20,12 @@
     { value: 'compact', title: 'Compact list', icon: ListDashesIcon },
     { value: 'cards', title: 'Detailed cards', icon: CardsIcon },
   ] as const;
+  const hiddenCount = $derived(store.playlists.filter((p) => p.hidden).length);
   const pct = $derived(store.sync.total ? Math.round((store.sync.done / store.sync.total) * 100) : 0);
 </script>
 
 <aside class="side">
-  <div class="brand"><img src={logo} alt="" /> Playlist Keeper</div>
+  <div class="brand"><button class="brand-btn" onclick={() => store.goHome()} aria-label="Playlist Keeper home"><img src={logo} alt="" width="30" height="30" style="border-radius: 8px" /> Playlist Keeper</button></div>
   <div class="side-tools">
     <button class="btn primary sync" style:--p="{store.sync.running ? pct : 0}%" disabled={store.sync.running} onclick={() => store.runSync()}>
       <span class="fill"></span>
@@ -41,9 +45,13 @@
       <input type="search" placeholder="Search playlists" aria-label="Search playlists" bind:value={store.query} />
     </label>
     <div class="view-row">
-      <Segmented label="Playlist layout" options={[...VIEWS]} value={store.playlistView} onchange={(v) => store.setPlaylistView(v)} />
-      <label class="switch"><input type="checkbox" bind:checked={store.showHidden} /> Show hidden</label>
+      <Segmented compact label="Playlist layout" options={[...VIEWS]} value={store.playlistView} onchange={(v) => store.setPlaylistView(v)} />
+      <button class="btn toggle" aria-pressed={store.showHidden} title="{store.showHidden ? 'Hide' : 'Show'} hidden playlists ({hiddenCount})" onclick={() => (store.showHidden = !store.showHidden)}>
+        {#if store.showHidden}<EyeIcon size={16} weight="fill" />{:else}<EyeSlashIcon size={16} />{/if}
+        Hidden <span class="n">{hiddenCount}</span>
+      </button>
     </div>
   </div>
+  <button class="nav-home" class:on={store.selected === null} style="margin: 0 10px 2px; width: calc(100% - 20px)" onclick={() => store.goHome()}><HouseIcon size={20} weight={store.selected === null ? 'fill' : 'regular'} /> Home</button>
   <PlaylistList />
 </aside>

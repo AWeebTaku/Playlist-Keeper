@@ -6,16 +6,16 @@
   import SparkleIcon from 'phosphor-svelte/lib/SparkleIcon';
   import TimerIcon from 'phosphor-svelte/lib/TimerIcon';
   import WarningIcon from 'phosphor-svelte/lib/WarningIcon';
-  import logo from '../assets/logo.png';
   import CleanTab from './CleanTab.svelte';
   import CompareTab from './CompareTab.svelte';
   import Cover from './Cover.svelte';
   import DupesTab from './DupesTab.svelte';
+  import Home from './Home.svelte';
   import ItemsTab from './ItemsTab.svelte';
   import ProfileMenu from './ProfileMenu.svelte';
   import ShortTab from './ShortTab.svelte';
   import { store } from './store.svelte';
-  import { ago, coverUrl } from './util';
+  import { ago, coverUrls } from './util';
 
   const TABS = [
     ['items', 'Items', MusicNotesIcon],
@@ -25,19 +25,19 @@
     ['dupes', 'Duplicates', CopyIcon],
   ] as const;
   const playlist = $derived(store.playlists.find((p) => p.id === store.selected));
-  const cover = $derived(playlist ? coverUrl(playlist) : null);
+  const covers = $derived(playlist ? coverUrls(playlist) : []);
 </script>
 
 <div class="topbar glass">
-  <span class="where">{playlist ? 'Playlist' : 'Your library'}</span>
+  <span class="where">{playlist ? 'Playlist' : 'Home'}</span>
   <ProfileMenu />
 </div>
 
 {#if playlist}
   <header class="banner">
-    <div class="banner-bg" style:background-image={cover ? `url("${cover}")` : 'none'}></div>
+    <div class="banner-bg" style:background-image={covers[0] ? `url("${covers[0]}")` : 'none'}></div>
     <div class="banner-row">
-      <Cover src={cover} iconSize={56} />
+      <Cover srcs={covers} iconSize={56} />
       <div style="min-width: 0">
         <h1>{playlist.title}</h1>
         <div class="chips">
@@ -61,13 +61,5 @@
     {:else}<DupesTab />{/if}
   </section>
 {:else}
-  <header class="banner empty-banner">
-    <div class="banner-row">
-      <img src={logo} alt="" style="width: 72px; border-radius: 18px" />
-      <div>
-        <h1>Pick a playlist</h1>
-        <p class="mut" style="margin: 0">Choose one from the list on the left. Press <strong>Sync all</strong> first if the list is empty.</p>
-      </div>
-    </div>
-  </header>
+  <Home />
 {/if}

@@ -84,6 +84,20 @@ export class Repo {
     await this.sql.execute('INSERT INTO playlists(id,title,last_sync,thumb) VALUES(?,?,0,?) ON CONFLICT(id) DO UPDATE SET title=excluded.title, thumb=COALESCE(excluded.thumb, playlists.thumb)', [id, title, thumb ?? null]);
   }
 
+  /**
+   * Save the title and cover of every playlist in the library list (adds new ones). Never touches `hidden` or `last_sync`,
+   * and keeps a saved cover when the new read has none. One statement per 100 playlists.
+   */
+  async upsertLibrary(list: { id: string; title: string; thumb: string | null }[]): Promise<void> {
+    for (const c of chunks(list, 100)) {
+      await this.sql.execute(
+        `INSERT INTO playlists(id,title,last_sync,thumb) VALUES ${c.map(() => '(?,?,0,?)').join(',')}
+         ON CONFLICT(id) DO UPDATE SET title=excluded.title, thumb=COALESCE(excluded.thumb, playlists.thumb)`,
+        c.flatMap((p) => [p.id, p.title, p.thumb]),
+      );
+    }
+  }
+
   async touchSynced(id: string, now: number): Promise<void> {
     await this.sql.execute('UPDATE playlists SET last_sync=? WHERE id=?', [now, id]);
   }

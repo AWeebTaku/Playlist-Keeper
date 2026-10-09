@@ -112,6 +112,11 @@ export async function selftest(): Promise<void> {
   await log(`     profile: name ${who?.name ? 'yes' : 'no'}, handle ${who?.handle ? 'yes' : 'no'}, photo ${who?.photo ? 'yes' : 'no'}`);
   const lib = await step('library playlists', () => yt.libraryPlaylists());
   await log(`     library: ${lib?.length ?? 0} playlists`);
+  if (repo) {
+    const n = await step('library refresh (titles and covers, no tracks)', () => actions.refreshLibrary(repo, yt));
+    const ls = await repo.playlists();
+    await log(`     refreshed ${n ?? 0} playlists; covers saved for ${ls.filter((p) => p.thumb).length} of ${ls.length}`);
+  }
   const small = lib?.find((p) => p.title === '!Queue') ?? lib?.find((p) => (p.count ?? 0) > 0 && (p.count ?? 0) < 400);
   if (small) {
     const tracks = await step(`read a playlist (${small.count} tracks)`, () => yt.playlistTracks(small.id));

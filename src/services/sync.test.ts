@@ -112,4 +112,20 @@ describe('overrides and replaced items', () => {
     sql.raw.exec(readFileSync(new URL('../../src-tauri/migrations/002_playlist_thumb.sql', import.meta.url), 'utf8'));
     expect(await new Repo(sql).playlists()).toEqual([{ id: 'X', title: 'Old', hidden: true, lastSync: 5, total: 1, missing: 1, thumb: null, coverVideo: null }]);
   });
+
+  it('upsertLibrary adds playlists and updates covers without touching hidden, last_sync or an existing cover', async () => {
+    const repo = new Repo(memorySql());
+    await syncAll(repo, fake({ P: [T('a', 'A')] }));
+    await repo.setHidden('P', true);
+    await repo.upsertLibrary([
+      { id: 'P', title: 'Renamed', thumb: null }, // no cover in this read: keep the saved one
+      { id: 'N', title: 'New one', thumb: 'https://i.ytimg.com/pl_c/new.jpg' },
+    ]);
+    const lists = Object.fromEntries((await repo.playlists()).map((p) => [p.id, p]));
+    expect(lists.P).toMatchObject({ title: 'Renamed', hidden: true, thumb: 'https://i.ytimg.com/pl_c/cover.jpg', total: 1 });
+    expect(lists.P!.lastSync).toBeGreaterThan(0);
+    expect(lists.N).toMatchObject({ title: 'New one', hidden: false, thumb: 'https://i.ytimg.com/pl_c/new.jpg', lastSync: 0, total: 0 });
+    await repo.upsertLibrary([{ id: 'N', title: 'New one', thumb: 'https://i.ytimg.com/pl_c/newer.jpg' }]);
+    expect((await repo.playlists()).find((p) => p.id === 'N')!.thumb).toBe('https://i.ytimg.com/pl_c/newer.jpg');
+  });
 });

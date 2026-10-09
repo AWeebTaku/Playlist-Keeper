@@ -1,5 +1,6 @@
 <script lang="ts">
   import ArrowSquareOutIcon from 'phosphor-svelte/lib/ArrowSquareOutIcon';
+  import ArrowLeftIcon from 'phosphor-svelte/lib/ArrowLeftIcon';
   import PlugsConnectedIcon from 'phosphor-svelte/lib/PlugsConnectedIcon';
   import { onMount } from 'svelte';
   import logo from '../assets/logo.png';
@@ -30,6 +31,9 @@
 
 <div class="connect-page">
   <div class="connect">
+    {#if store.canGoBack}
+      <button class="btn sm ghost" style="margin-bottom: 12px" onclick={() => store.cancelReconnect()}><ArrowLeftIcon size={14} weight="bold" /> Back to the app</button>
+    {/if}
     <div class="hero">
       <img src={logo} alt="" />
       <div>
@@ -57,11 +61,10 @@
         <button class="btn primary wide" style="min-height: 46px" disabled={store.busy} onclick={() => store.signInBrowser(browser, profile || undefined)}>
           <PlugsConnectedIcon size={20} weight="bold" /> {store.busy ? 'Connecting...' : 'Use this account'}
         </button>
-        <span class="mut sm">
-          Not signed in yet?
-          <button class="btn sm ghost" onclick={() => void openYoutubeMusic()}><ArrowSquareOutIcon size={14} /> Open music.youtube.com</button>
-          sign in there, then come back.
-        </span>
+        <div class="bar" style="margin: 0; justify-content: space-between">
+          <span class="mut sm">Not signed in yet? Sign in at YouTube Music first, then come back.</span>
+          <button class="btn sm outline" onclick={() => void openYoutubeMusic()}><ArrowSquareOutIcon size={14} /> Open music.youtube.com</button>
+        </div>
       </div>
 
       <details>

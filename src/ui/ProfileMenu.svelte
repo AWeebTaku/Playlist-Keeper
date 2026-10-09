@@ -3,6 +3,7 @@
   import ArrowsClockwiseIcon from 'phosphor-svelte/lib/ArrowsClockwiseIcon';
   import DesktopIcon from 'phosphor-svelte/lib/DesktopIcon';
   import MoonIcon from 'phosphor-svelte/lib/MoonIcon';
+  import PlugsConnectedIcon from 'phosphor-svelte/lib/PlugsConnectedIcon';
   import SignOutIcon from 'phosphor-svelte/lib/SignOutIcon';
   import SunIcon from 'phosphor-svelte/lib/SunIcon';
   import Avatar from './Avatar.svelte';
@@ -28,7 +29,7 @@
 />
 
 <span data-profile>
-  <button class="avatar" bind:this={button} aria-haspopup="dialog" aria-expanded={store.profileOpen} aria-label="Account menu" title={store.profile?.name ?? 'Account'} onclick={() => (store.profileOpen = !store.profileOpen)}>
+  <button class="avatar-btn" bind:this={button} aria-haspopup="dialog" aria-expanded={store.profileOpen} aria-label="Account menu" title={store.profile?.name ?? 'Account'} onclick={() => (store.profileOpen = !store.profileOpen)}>
     <Avatar profile={store.profile} />
   </button>
 
@@ -64,10 +65,17 @@
         </button>
       {/if}
       <button class="menu-row" onclick={() => store.reconnect()}>
-        <SignOutIcon size={22} />
+        <PlugsConnectedIcon size={22} />
         <span>
           <div>Reconnect</div>
-          <div class="msub">Sign in again or switch account</div>
+          <div class="msub">Use another browser or account</div>
+        </span>
+      </button>
+      <button class="menu-row" onclick={() => store.logout()}>
+        <SignOutIcon size={22} />
+        <span>
+          <div>Log out</div>
+          <div class="msub">Remove the saved login from this computer</div>
         </span>
       </button>
 
