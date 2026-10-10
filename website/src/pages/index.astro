@@ -1,0 +1,322 @@
+---
+import '@fontsource-variable/roboto';
+import '../styles/site.css';
+import github from '@phosphor-icons/core/assets/fill/github-logo-fill.svg?raw';
+import star from '@phosphor-icons/core/assets/regular/star.svg?raw';
+import moon from '@phosphor-icons/core/assets/fill/moon-fill.svg?raw';
+import sun from '@phosphor-icons/core/assets/fill/sun-fill.svg?raw';
+import download from '@phosphor-icons/core/assets/bold/download-simple-bold.svg?raw';
+import clock from '@phosphor-icons/core/assets/regular/clock-counter-clockwise.svg?raw';
+import search from '@phosphor-icons/core/assets/regular/magnifying-glass.svg?raw';
+import timer from '@phosphor-icons/core/assets/regular/timer.svg?raw';
+import dupes from '@phosphor-icons/core/assets/regular/cards.svg?raw';
+import swap from '@phosphor-icons/core/assets/regular/arrows-left-right.svg?raw';
+import broom from '@phosphor-icons/core/assets/regular/broom.svg?raw';
+import warn from '@phosphor-icons/core/assets/fill/warning-circle-fill.svg?raw';
+import check from '@phosphor-icons/core/assets/fill/check-circle-fill.svg?raw';
+import lock from '@phosphor-icons/core/assets/regular/lock-key.svg?raw';
+import db from '@phosphor-icons/core/assets/regular/database.svg?raw';
+import code from '@phosphor-icons/core/assets/regular/code.svg?raw';
+import windows from '@phosphor-icons/core/assets/fill/windows-logo-fill.svg?raw';
+import apple from '@phosphor-icons/core/assets/fill/apple-logo-fill.svg?raw';
+import linux from '@phosphor-icons/core/assets/fill/linux-logo-fill.svg?raw';
+import copy from '@phosphor-icons/core/assets/regular/copy.svg?raw';
+import file from '@phosphor-icons/core/assets/regular/file-text.svg?raw';
+import folder from '@phosphor-icons/core/assets/fill/folder-fill.svg?raw';
+import scales from '@phosphor-icons/core/assets/regular/scales.svg?raw';
+
+const base = import.meta.env.BASE_URL.replace(/\/$/u, '');
+const REPO = 'https://github.com/AWeebTaku/Playlist-Keeper';
+const REL = `${REPO}/releases/latest`;
+const SITE = 'https://aweebtaku.github.io/Playlist-Keeper/';
+const title = 'Playlist Keeper: never lose a YouTube Music song again';
+const desc = 'Free, open-source desktop app (Windows, macOS, Linux) that keeps a local history of your YouTube Music playlists, so removed and greyed-out songs can be found and replaced.';
+const features = [
+  { i: clock, t: 'Remembers every song', p: 'Each sync is saved on your computer. When YouTube greys a track out or deletes it, you still see its title and artist.' },
+  { i: search, t: 'Finds replacements', p: 'Ranks candidates by title, artist and length, so the right version is one click away. Nothing changes until you confirm.' },
+  { i: timer, t: 'Full-length versions', p: 'Playlist full of 30-second clips? Find the real song and add it, keeping or replacing the short one.' },
+  { i: dupes, t: 'Smart duplicate finder', p: 'Same song twice, told apart from covers, remixes, lyric videos and slowed versions, which are never grouped.' },
+  { i: swap, t: 'Compare playlists', p: 'See where else a track already lives, or what differs between two playlists.' },
+  { i: broom, t: 'Tidy titles', p: 'Preview a clean-up of "(Official Video)" style clutter before anything is renamed.' },
+];
+---
+
+<!doctype html>
+<html lang="en" class="no-js">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>{title}</title>
+    <meta name="description" content={desc} />
+    <link rel="canonical" href={SITE} />
+    <meta name="theme-color" content="#030303" />
+    <link rel="icon" type="image/png" href={`${base}/favicon.png`} />
+    <link rel="apple-touch-icon" href={`${base}/apple-touch-icon.png`} />
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content={title} />
+    <meta property="og:description" content={desc} />
+    <meta property="og:url" content={SITE} />
+    <meta property="og:image" content={`${SITE}og.png`} />
+    <meta name="twitter:card" content="summary_large_image" />
+    <script is:inline>
+      // runs before first paint: no flash of the wrong theme, and CSS knows JavaScript is available
+      document.documentElement.className = 'js';
+      try {
+        var t = localStorage.getItem('pk-theme');
+        if (t === 'light' || t === 'dark') document.documentElement.dataset.theme = t;
+      } catch (e) {}
+      document.documentElement.dataset.resolved =
+        document.documentElement.dataset.theme || (matchMedia('(prefers-color-scheme: light)').matches ? 'light' : 'dark');
+    </script>
+  </head>
+  <body>
+    <div class="bg" aria-hidden="true"><i></i><i></i></div>
+
+    <header class="nav" id="nav">
+      <div class="wrap in">
+        <a class="logo" href="#top"><img src={`${base}/img/logo.png`} alt="" width="30" height="30" /> Playlist Keeper</a>
+        <nav class="links" aria-label="Sections">
+          <a href="#features">Features</a><a href="#screens">Screens</a><a href="#privacy">Privacy</a><a href="#download">Download</a><a href="#faq">FAQ</a>
+        </nav>
+        <div class="end">
+          <a class="star" href={REPO} aria-label="Star Playlist Keeper on GitHub">
+            <span><i class="ico s" set:html={star} /> Star</span><span data-stars>&nbsp;</span>
+          </a>
+          <button class="theme" id="theme" aria-label="Switch between light and dark theme" title="Switch theme">
+            <i class="ico sun" set:html={sun} /><i class="ico moon" set:html={moon} />
+          </button>
+          <a class="btn sm primary dlnav" href="#download">Download</a>
+        </div>
+      </div>
+    </header>
+
+    <main id="top">
+      <div class="wrap hero">
+        <a class="pill in-load" style="--d: 0" href={REL} data-release-pill><b>New</b> <span data-version-text>Free and open source</span></a>
+        <h1 class="in-load" style="--d: 1">Your YouTube Music playlists, <span class="grad">remembered.</span></h1>
+        <p class="lead in-load" style="--d: 2">
+          Playlist Keeper keeps a private history of your playlists, so when YouTube greys a song out or deletes it, you can still see what it was and
+          find a replacement.
+        </p>
+        <div class="cta in-load" style="--d: 3">
+          <a class="btn primary lg" href={REL} data-asset="main" id="dl-main">
+            <i class="ico" set:html={download} />
+            <span class="two"><span data-os-label>Download</span><small data-os-sub>Windows, macOS and Linux</small></span>
+          </a>
+          <a class="btn lg" href={REPO}><i class="ico" set:html={github} /> View on GitHub</a>
+        </div>
+        <p class="fine in-load" style="--d: 4">Free · No account · Your data never leaves your computer</p>
+
+        <div class="stage in-load" style="--d: 5" id="stage">
+          <div class="float a" aria-hidden="true">
+            <span class="dot"><i class="ico" set:html={warn} /></span><span><b>Opening 2 – Sunrise Parade</b><small>Greyed out on YouTube</small></span>
+          </div>
+          <div class="float b" aria-hidden="true">
+            <span class="dot"><i class="ico" set:html={check} /></span><span><b>Replacement found</b><small>Same song, full length</small></span>
+          </div>
+          <div class="window" id="tilt">
+            <div class="bar"><i></i><i></i><i></i><span>Playlist Keeper</span></div>
+            <div class="shot">
+              <img class="dark" src={`${base}/img/home-dark.webp`} alt="Playlist Keeper home screen showing playlists that need attention (dark theme)" width="1360" height="860" fetchpriority="high" />
+              <img class="light" src={`${base}/img/home-light.webp`} alt="Playlist Keeper home screen showing playlists that need attention (light theme)" width="1360" height="860" />
+            </div>
+          </div>
+        </div>
+        <p class="logos reveal" style="--d: 0">
+          <span><i class="ico" set:html={windows} /> Windows 10 / 11</span><span><i class="ico" set:html={apple} /> macOS 11+</span><span><i class="ico" set:html={linux} /> Debian, Fedora, Arch, AppImage</span>
+        </p>
+      </div>
+
+      <section id="demo">
+        <div class="wrap demo">
+          <div>
+            <span class="eyebrow reveal">The problem</span>
+            <div class="head reveal" style="--d: 1; margin-bottom: 0">
+              <h2>A song vanishes. <span class="grad">You'll know which one.</span></h2>
+              <p>YouTube quietly greys out or removes tracks, and the playlist just gets shorter. Playlist Keeper notices and keeps the evidence.</p>
+            </div>
+            <ol class="steps">
+              <li class="reveal" style="--d: 2"><span class="n">1</span><div><b>Sync</b><span>Playlist Keeper saves every track of every playlist, locally.</span></div></li>
+              <li class="reveal" style="--d: 3"><span class="n">2</span><div><b>Spot it</b><span>Next sync, a track that turned grey or disappeared is flagged.</span></div></li>
+              <li class="reveal" style="--d: 4"><span class="n">3</span><div><b>Replace it</b><span>Pick a suggested version. You confirm before anything changes.</span></div></li>
+            </ol>
+          </div>
+          <div class="list reveal" style="--d: 2" aria-label="Animated example of a replaced track">
+            <div class="hd"><i class="ico" set:html={clock} /> Late Night Drive <small>sync #12</small></div>
+            <div class="row"><span class="art" style="background: linear-gradient(135deg, #b4323e, #d4793a)"></span><span><b>Midnight Drive</b><small>Neon Harbor</small></span><span class="t">2:30</span></div>
+            <div class="row swap" role="img" aria-label="Opening 2 by Crunchyroll turns grey, then is replaced by the full version">
+              <div class="st s1"><span class="art" style="background: linear-gradient(135deg, #3b6fd6, #2a9d8f)"></span><span><b>Opening 2 – Sunrise Parade</b><small>Crunchyroll</small></span><span class="t">1:24</span></div>
+              <div class="st s2"><span class="art" style="background: linear-gradient(135deg, #3b6fd6, #2a9d8f)"></span><span><b>Opening 2 – Sunrise Parade</b><small><span class="chip warn">Greyed out</span></small></span><span class="find">Find replacement</span></div>
+              <div class="st s3"><span class="art" style="background: linear-gradient(135deg, #3b6fd6, #2a9d8f)"></span><span><b>Sunrise Parade (Full Version)</b><small><span class="chip ok">Replaced</span> Crunchyroll</small></span><span class="t">3:41</span></div>
+            </div>
+            <div class="row"><span class="art" style="background: linear-gradient(135deg, #7a3bb4, #c4405a)"></span><span><b>Paper Planes</b><small>Juno Park</small></span><span class="t">3:07</span></div>
+            <div class="row"><span class="art" style="background: linear-gradient(135deg, #2a9d4f, #1d6f7a)"></span><span><b>Northern Lights</b><small>The Lanterns</small></span><span class="t">3:32</span></div>
+          </div>
+        </div>
+      </section>
+
+      <section id="features">
+        <div class="wrap">
+          <div class="head">
+            <span class="eyebrow reveal">Features</span>
+            <h2 class="reveal" style="--d: 1">Everything a playlist keeper needs, nothing it doesn't.</h2>
+            <p class="reveal" style="--d: 2">A focused tool with a calm interface that looks like the YouTube Music you already know.</p>
+          </div>
+          <div class="bento">
+            {features.map((f, n) => (
+              <article class={`card reveal ${f.wide ? 'wide' : ''}`} style={`--d: ${n % 3}`}>
+                <div class="ic"><i class="ico" set:html={f.i} /></div>
+                <h3>{f.t}</h3>
+                <p>{f.p}</p>
+              </article>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      <section id="screens">
+        <div class="wrap gallery">
+          <div class="head center">
+            <span class="eyebrow reveal">Screens</span>
+            <h2 class="reveal" style="--d: 1">Made to feel at home.</h2>
+            <p class="reveal" style="--d: 2">Dark by default, light when you want it, and it follows your system.</p>
+          </div>
+          <div style="text-align: center" class="reveal">
+            <div class="tabs" role="tablist" aria-label="Screens" id="shots-tabs">
+              <button role="tab" aria-selected="true" data-pane="home">Home</button>
+              <button role="tab" aria-selected="false" data-pane="items">Playlist</button>
+              <button role="tab" aria-selected="false" data-pane="short">Short tracks</button>
+            </div>
+          </div>
+          <div class="window reveal" style="--d: 1">
+            <div class="bar"><i></i><i></i><i></i><span>Playlist Keeper</span></div>
+            {[['home', 'The Home page lists the playlists that need attention first.'], ['items', 'Every track, with its status and a one-click "Find replacement".'], ['short', 'Clips that are a cut of a longer song, with the full version one click away.']].map(([k, c], n) => (
+              <div class={`pane shot ${n === 0 ? 'on' : ''}`} id={`pane-${k}`} role="tabpanel">
+                <img class="dark" src={`${base}/img/${k}-dark.webp`} alt={`${c} (dark theme)`} width="1360" height="860" loading="lazy" />
+                <img class="light" src={`${base}/img/${k}-light.webp`} alt={`${c} (light theme)`} width="1360" height="860" loading="lazy" />
+              </div>
+            ))}
+          </div>
+          <p class="cap" id="cap">The Home page lists the playlists that need attention first.</p>
+        </div>
+      </section>
+
+      <section id="privacy">
+        <div class="wrap">
+          <div class="head">
+            <span class="eyebrow reveal">Privacy</span>
+            <h2 class="reveal" style="--d: 1">Your library stays yours.</h2>
+            <p class="reveal" style="--d: 2">There is no Playlist Keeper server. The app talks to YouTube, and to GitHub when it checks for updates. That is all.</p>
+          </div>
+          <div class="priv">
+            <article class="card reveal" style="--d: 0"><div class="ic"><i class="ico" set:html={lock} /></div><h3>No password, ever</h3><p>It reuses the browser you are already signed in with. The login is stored in your system's keychain, not in a file.</p></article>
+            <article class="card reveal" style="--d: 1"><div class="ic"><i class="ico" set:html={db} /></div><h3>History on your disk</h3><p>Playlists and tracks live in a small database on your computer. Delete the app data and it is gone.</p></article>
+            <article class="card reveal" style="--d: 2"><div class="ic"><i class="ico" set:html={code} /></div><h3>Open source</h3><p>Read every line, build it yourself, or fix something. Releases are built in public by GitHub Actions.</p></article>
+          </div>
+          <div class="repo">
+            <div class="card reveal" style="--d: 1">
+              <div class="top"><i class="ico" set:html={github} /> <span>AWeebTaku /</span> <a href={REPO}>Playlist-Keeper</a><span class="chip">Public</span></div>
+              <ul class="files">
+                <li><i class="ico" set:html={folder} /> src <em>Svelte + TypeScript interface</em></li>
+                <li><i class="ico" set:html={folder} /> src-tauri <em>Rust shell, keychain, updater</em></li>
+                <li><i class="ico" set:html={folder} /> .github/workflows <em>Automatic releases for every system</em></li>
+                <li><i class="ico" set:html={file} /> README.md <em>Install steps for every system</em></li>
+                <li><i class="ico" set:html={scales} /> LICENSE <em>Free to use</em></li>
+              </ul>
+            </div>
+            <div class="card stats reveal" style="--d: 2">
+              <div><b data-stars>–</b><span>GitHub stars</span></div>
+              <div><b data-version>–</b><span>Latest release</span></div>
+              <div><b>3</b><span>Systems: Windows, macOS, Linux</span></div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section id="download">
+        <div class="wrap">
+          <div class="head center">
+            <span class="eyebrow reveal">Download</span>
+            <h2 class="reveal" style="--d: 1">Get Playlist Keeper <span class="grad" data-version-h>today</span>.</h2>
+            <p class="reveal" style="--d: 2">Free for Windows, macOS and Linux. After the first install the app updates itself.</p>
+          </div>
+          <div class="dl reveal" style="--d: 1">
+            <div class="tabs" role="tablist" aria-label="Operating system" id="os-tabs">
+              <button role="tab" aria-selected="false" data-os="windows"><i class="ico" set:html={windows} /> Windows</button>
+              <button role="tab" aria-selected="false" data-os="macos"><i class="ico" set:html={apple} /> macOS</button>
+              <button role="tab" aria-selected="false" data-os="linux"><i class="ico" set:html={linux} /> Linux</button>
+            </div>
+
+            <div class="panel on" id="os-windows" role="tabpanel">
+              <h3>Windows 10 and 11</h3>
+              <div class="row2">
+                <a class="btn primary" href={REL} data-asset="windows-exe"><i class="ico" set:html={download} /> Installer (.exe)</a>
+                <a class="btn" href={REL} data-asset="windows-msi">MSI package</a>
+              </div>
+              <p class="mut">Installs for the current user, no admin rights needed. Requires the Edge WebView2 runtime, which current Windows already has.</p>
+              <div class="note" style="margin-top: 16px"><i class="ico" set:html={warn} /><span>The installers are not code-signed, so Windows SmartScreen says "Windows protected your PC". Click <b>More info</b>, then <b>Run anyway</b>.</span></div>
+            </div>
+
+            <div class="panel" id="os-macos" role="tabpanel">
+              <h3>macOS 11 or newer (Apple silicon and Intel)</h3>
+              <div class="row2"><a class="btn primary" href={REL} data-asset="macos-dmg"><i class="ico" set:html={download} /> Disk image (.dmg)</a></div>
+              <p class="mut">Open the disk image and drag Playlist Keeper to Applications.</p>
+              <div class="note" style="margin-top: 16px"><i class="ico" set:html={warn} /><span>The app is not notarised. On macOS 14 and earlier, right-click it and choose <b>Open</b>. On macOS 15 and later, try to open it once, then go to <b>System Settings → Privacy &amp; Security → Open Anyway</b>.</span></div>
+            </div>
+
+            <div class="panel" id="os-linux" role="tabpanel">
+              <h3>Linux (64-bit)</h3>
+              <div class="distro">
+                <div class="d"><b>Debian, Ubuntu, Mint<small>.deb</small></b><pre class="code" id="c-deb">sudo apt install ./playlist-keeper_*.deb</pre><span><button class="copy" data-copy="c-deb"><i class="ico" set:html={copy} /> Copy</button> <a class="btn sm" href={REL} data-asset="linux-deb">Download</a></span></div>
+                <div class="d"><b>Fedora, openSUSE<small>.rpm</small></b><pre class="code" id="c-rpm">sudo dnf install ./playlist-keeper-*.rpm</pre><span><button class="copy" data-copy="c-rpm"><i class="ico" set:html={copy} /> Copy</button> <a class="btn sm" href={REL} data-asset="linux-rpm">Download</a></span></div>
+                <div class="d"><b>Arch, Manjaro<small>pacman package</small></b><pre class="code" id="c-arch">sudo pacman -U playlist-keeper-*.pkg.tar.zst</pre><span><button class="copy" data-copy="c-arch"><i class="ico" set:html={copy} /> Copy</button> <a class="btn sm" href={REL} data-asset="linux-arch">Download</a></span></div>
+                <div class="d"><b>Any other distro<small>AppImage</small></b><pre class="code" id="c-app">chmod +x playlist-keeper_*.AppImage && ./playlist-keeper_*.AppImage</pre><span><button class="copy" data-copy="c-app"><i class="ico" set:html={copy} /> Copy</button> <a class="btn sm" href={REL} data-asset="linux-appimage">Download</a></span></div>
+              </div>
+              <div class="note" style="margin-top: 16px"><i class="ico" set:html={warn} /><span>The app keeps your login in the system keychain, so a Secret Service provider must be running: GNOME Keyring, KWallet or KeePassXC. A normal GNOME or KDE desktop has one.</span></div>
+            </div>
+
+            <p class="subtle"><a href={REL} data-asset="sums">SHA256 checksums</a><a href={`${REPO}/releases`}>All releases</a><a href={`${REPO}#install-and-first-launch`}>Full install guide</a></p>
+          </div>
+        </div>
+      </section>
+
+      <section id="faq">
+        <div class="wrap">
+          <div class="head center"><span class="eyebrow reveal">FAQ</span><h2 class="reveal" style="--d: 1">Questions, answered.</h2></div>
+          <div class="faq reveal" style="--d: 1">
+            <details><summary>Is it official?</summary><div class="a">No. Playlist Keeper is an independent project and is not affiliated with or endorsed by YouTube or Google. YouTube and YouTube Music are trademarks of Google LLC.</div></details>
+            <details><summary>Is it safe? Does it change my playlists?</summary><div class="a">It only reads your playlists while syncing. Anything that changes YouTube (adding, replacing or removing a track) happens after you press a button and, for replace and remove, confirm a dialog.</div></details>
+            <details><summary>How does it sign in?</summary><div class="a">It reads the YouTube cookies of a browser that is already signed in to YouTube Music (Firefox, Chrome, Edge, Brave and others), or you can paste a cookie yourself. It never asks for your Google password and stores the login in your operating system's keychain.</div></details>
+            <details><summary>Why does my computer warn me before opening it?</summary><div class="a">The installers are not code-signed, because certificates cost money every year. The warning is expected; the steps to continue are in the download section. Every release lists SHA256 checksums, and the full source and build logs are public.</div></details>
+            <details><summary>How do updates work?</summary><div class="a">The app checks GitHub for a newer release and asks before installing it. Updates are signed and verified. The Arch package is updated through your package manager or by installing the new file.</div></details>
+            <details><summary>How do I remove it?</summary><div class="a">Uninstall it like any other app, then delete its data folder if you also want the saved history gone. "Log out" in the profile menu removes the saved login from the keychain.</div></details>
+          </div>
+        </div>
+      </section>
+
+      <section style="padding-top: 0">
+        <div class="wrap">
+          <div class="cta-band reveal">
+            <h2>Stop losing songs <span class="grad">quietly.</span></h2>
+            <p>Free, open source, and on your computer in a minute.</p>
+            <div class="cta"><a class="btn primary lg" href="#download"><i class="ico" set:html={download} /> Download</a><a class="btn lg" href={REPO}><i class="ico" set:html={github} /> Star on GitHub</a></div>
+          </div>
+        </div>
+      </section>
+    </main>
+
+    <footer>
+      <div class="wrap in">
+        <div>
+          <a class="logo" href="#top"><img src={`${base}/img/logo.png`} alt="" width="30" height="30" /> Playlist Keeper</a>
+          <p>Independent project, not affiliated with or endorsed by YouTube or Google. YouTube Music is a trademark of Google LLC.</p>
+        </div>
+        <nav aria-label="Footer"><a href={REPO}>GitHub</a><a href={`${REPO}/releases`}>Releases</a><a href={`${REPO}/issues`}>Report a problem</a><a href={`${REPO}/blob/master/LICENSE`}>License</a></nav>
+      </div>
+    </footer>
+
+    <script>
+      import '../scripts/site';
+    </script>
+  </body>
+</html>

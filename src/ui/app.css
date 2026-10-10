@@ -243,7 +243,7 @@ th { color: var(--mut); font-weight: 500; font-size: 13px; }
 .sheet .body { max-height: 40vh; overflow: auto; color: var(--mut); margin-bottom: 20px; white-space: pre-wrap; }
 .acts { display: flex; gap: 8px; justify-content: flex-end; }
 #toasts { position: fixed; right: 20px; bottom: 20px; display: grid; gap: 8px; z-index: 70; }
-.toast { display: flex; align-items: center; gap: 10px; background: var(--glass-strong); border: 1px solid var(--line); padding: 12px 16px; border-radius: var(--r-row); max-width: 380px; box-shadow: var(--shadow-pop); backdrop-filter: blur(18px); -webkit-backdrop-filter: blur(18px); animation: pop 0.14s ease-out; }
+.toast { display: flex; align-items: center; gap: 10px; background: var(--glass-strong); border: 1px solid var(--line); padding: 12px 16px; border-radius: var(--r-row); max-width: 380px; box-shadow: var(--shadow-pop); backdrop-filter: blur(18px); -webkit-backdrop-filter: blur(18px); }
 .toast.bad { border-color: var(--danger); }
 
 @media (max-width: 900px) {
@@ -322,3 +322,22 @@ th { color: var(--mut); font-weight: 500; font-size: 13px; }
 .connect-modal .connect .card { background: var(--glass-strong); backdrop-filter: none; -webkit-backdrop-filter: none; }
 .connect-modal .connect { background: var(--glass-strong); border: 1px solid var(--line); border-radius: var(--r-card); padding: 20px; box-shadow: var(--shadow-pop); }
 .connect-modal .connect .card { background: transparent; border: 0; box-shadow: none; padding: 4px; }
+
+/* motion: entrances are CSS-only and switched off by prefers-reduced-motion (rule above) */
+@keyframes rise { from { opacity: 0; transform: translateY(8px); } }
+.rise, .home-hero, .stats .stat, .connect-page .connect { animation: rise 0.28s ease-out backwards; }
+.stats .stat:nth-child(2) { animation-delay: 0.05s; }
+.stats .stat:nth-child(3) { animation-delay: 0.1s; }
+.stats .stat:nth-child(4) { animation-delay: 0.15s; }
+.item, .gcard, .pl { animation: rise 0.26s ease-out backwards; }
+:is(.item, .gcard, .pl):nth-child(-n + 12) { animation-delay: calc(var(--i, 0) * 1ms); }
+:is(.item, .gcard, .pl):nth-child(2) { --i: 20; } :is(.item, .gcard, .pl):nth-child(3) { --i: 40; } :is(.item, .gcard, .pl):nth-child(4) { --i: 60; }
+:is(.item, .gcard, .pl):nth-child(5) { --i: 80; } :is(.item, .gcard, .pl):nth-child(6) { --i: 100; } :is(.item, .gcard, .pl):nth-child(7) { --i: 120; }
+:is(.item, .gcard, .pl):nth-child(8) { --i: 140; } :is(.item, .gcard, .pl):nth-child(n + 9) { --i: 160; }
+.scrim { animation: fade 0.18s ease-out; }
+.tabs button { transition: background 0.2s, color 0.2s, border-color 0.2s, transform 0.12s; }
+.tabs button:active { transform: scale(0.96); }
+.avatar-btn { transition: transform 0.15s, box-shadow 0.15s; }
+.avatar-btn:hover { transform: scale(1.06); }
+.menu-row, .dd-opt, .nav-home, .pl { transition: background 0.15s, color 0.15s, transform 0.15s; }
+.menu-row:active, .dd-opt:active { transform: scale(0.98); }

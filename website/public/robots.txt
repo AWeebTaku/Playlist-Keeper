@@ -1,0 +1,3 @@
+User-agent: *
+Allow: /
+Sitemap: https://aweebtaku.github.io/Playlist-Keeper/sitemap.xml

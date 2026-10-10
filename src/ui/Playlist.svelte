@@ -54,11 +54,15 @@
     {/each}
   </div>
   <section class="panel">
-    {#if store.tab === 'items'}<ItemsTab />
-    {:else if store.tab === 'short'}<ShortTab />
-    {:else if store.tab === 'compare'}<CompareTab />
-    {:else if store.tab === 'clean'}<CleanTab />
-    {:else}<DupesTab />{/if}
+    {#key store.tab}
+      <div class="rise">
+        {#if store.tab === 'items'}<ItemsTab />
+        {:else if store.tab === 'short'}<ShortTab />
+        {:else if store.tab === 'compare'}<CompareTab />
+        {:else if store.tab === 'clean'}<CleanTab />
+        {:else}<DupesTab />{/if}
+      </div>
+    {/key}
   </section>
 {:else}
   <Home />

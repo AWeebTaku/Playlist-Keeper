@@ -69,8 +69,8 @@ class Store {
   /** The last manual check found nothing newer. */
   upToDate = $state(false);
   aboutOpen = $state(false);
-  /** Project page: the website is not built yet. */
-  readonly website: string | null = null;
+  /** Project website (GitHub Pages, built from website/). */
+  readonly website: string | null = 'https://aweebtaku.github.io/Playlist-Keeper/';
   updateState = $state<'idle' | 'checking' | 'installing'>('idle');
   updatePct = $state<number | null>(null);
 

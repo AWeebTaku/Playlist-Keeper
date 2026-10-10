@@ -1,6 +1,7 @@
 # Playlist Keeper
 
 A desktop app for Windows, macOS and Linux that keeps a local history of **your own YouTube Music playlists**.
+Website: <https://aweebtaku.github.io/Playlist-Keeper/>
 
 YouTube removes songs and videos, or greys them out, without telling you, and once an entry is gone you can no longer
 tell what it was. Playlist Keeper saves a copy of every entry (title, artist, length, thumbnail) on your computer, flags
@@ -399,7 +400,9 @@ scripts/        release-plan.mjs (version and platform decision), make-latest-js
                 ci-config.mjs (CI-only config edits), contrast.mjs (colour contrast check)
 packaging/arch/ PKGBUILD that turns the Linux deb into the Arch package (built in CI)
 tests/          shared test helper (in-memory SQLite)
-.github/        build.yml (checks and unsigned builds for pull requests), release.yml (automatic releases), dependabot.yml
+website/        the landing page (Astro, static): `cd website && npm ci && npm run dev`; deployed to GitHub Pages by pages.yml
+.github/        build.yml (checks and unsigned builds for pull requests), release.yml (automatic releases), pages.yml (website),
+                dependabot.yml
 ```
 
 ### Design decisions worth knowing

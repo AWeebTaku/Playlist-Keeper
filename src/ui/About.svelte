@@ -16,7 +16,7 @@
       <p class="mut">Keeps a local history of your YouTube Music playlists, so removed and greyed-out songs are never lost.</p>
       <div class="stack">
         <button class="btn" disabled={!store.repoUrl} onclick={() => store.openLink(store.repoUrl)}><GithubLogoIcon size={18} /> View on GitHub</button>
-        <button class="btn" disabled={!store.website} onclick={() => store.openLink(store.website)}><GlobeIcon size={18} /> Website (coming soon)</button>
+        <button class="btn" disabled={!store.website} onclick={() => store.openLink(store.website)}><GlobeIcon size={18} /> Website</button>
         <button class="btn primary" onclick={() => (store.aboutOpen = false)}>Close</button>
       </div>
     </div>

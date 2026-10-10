@@ -2,6 +2,7 @@
   import { onMount } from 'svelte';
   import CheckCircleIcon from 'phosphor-svelte/lib/CheckCircleIcon';
   import WarningCircleIcon from 'phosphor-svelte/lib/WarningCircleIcon';
+  import { fly } from 'svelte/transition';
   import About from './About.svelte';
   import Confirm from './Confirm.svelte';
   import Connect from './Connect.svelte';
@@ -40,7 +41,7 @@
 
 <div id="toasts" aria-live="polite">
   {#each store.toasts as t (t.id)}
-    <div class="toast" class:bad={t.bad}>
+    <div class="toast" class:bad={t.bad} in:fly={{ x: 40, duration: 220 }} out:fly={{ x: 40, duration: 160 }}>
       {#if t.bad}<WarningCircleIcon size={20} weight="fill" />{:else}<CheckCircleIcon size={20} weight="fill" />{/if}
       <span>{t.text}</span>
     </div>
