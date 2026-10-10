@@ -2,6 +2,7 @@
   import { onMount } from 'svelte';
   import CheckCircleIcon from 'phosphor-svelte/lib/CheckCircleIcon';
   import WarningCircleIcon from 'phosphor-svelte/lib/WarningCircleIcon';
+  import About from './About.svelte';
   import Confirm from './Confirm.svelte';
   import Connect from './Connect.svelte';
   import Sidebar from './Sidebar.svelte';
@@ -10,6 +11,8 @@
 
   onMount(() => void store.boot());
 </script>
+
+<svelte:window onkeydown={(e) => e.key === 'Escape' && store.canGoBack && store.cancelReconnect()} />
 
 {#if store.phase === 'boot'}
   <div class="connect-page"><div class="connect"><div class="skel"></div></div></div>
@@ -22,6 +25,17 @@
   </div>
 {/if}
 
+{#if store.phase === 'ready' && store.profileOpen}
+  <div class="menu-scrim" role="presentation" onclick={() => (store.profileOpen = false)}></div>
+{/if}
+
+{#if store.phase === 'ready' && store.canGoBack}
+  <div class="scrim lite" role="presentation" onclick={(e) => e.target === e.currentTarget && store.cancelReconnect()}>
+    <div class="connect-modal"><Connect modal /></div>
+  </div>
+{/if}
+
+<About />
 <Confirm />
 
 <div id="toasts" aria-live="polite">

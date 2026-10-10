@@ -321,6 +321,9 @@ struct UpdateSupport {
     supported: bool,
     reason: Option<String>,
     releases_url: Option<String>,
+    /// Operating system and package type ("linux" + "appimage", "windows" + "nsis", ...), so the UI can say how updating works here.
+    os: &'static str,
+    bundle: Option<String>,
 }
 
 #[derive(Clone, Copy, PartialEq, Debug)]
@@ -370,11 +373,14 @@ fn update_support(app: tauri::AppHandle) -> UpdateSupport {
         .and_then(|e| e.get(0))
         .and_then(|e| e.as_str())
         .and_then(releases_page);
+    let bundle = tauri::utils::platform::bundle_type().map(|b| format!("{b:?}").to_lowercase());
     let reason = why_not(packaging, on_path("dpkg"), on_path("rpm")).map(str::to_string);
     UpdateSupport {
         supported: reason.is_none(),
         reason,
         releases_url,
+        os: std::env::consts::OS,
+        bundle,
     }
 }
 

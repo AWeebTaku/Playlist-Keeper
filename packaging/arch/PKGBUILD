@@ -14,7 +14,7 @@ optdepends=(
   'keepassxc: Secret Service provider that stores your login'
 )
 options=('!strip' '!debug' '!lto')
-_deb="Playlist-Keeper_${pkgver}_amd64.deb"
+_deb='playlist-keeper.deb'
 source=("$_deb" 'LICENSE')
 noextract=("$_deb")
 sha256sums=('SKIP' 'SKIP')

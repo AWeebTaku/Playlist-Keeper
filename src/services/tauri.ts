@@ -13,6 +13,9 @@ export interface UpdateSupport {
   reason: string | null;
   /** The releases page of the project, when known. */
   releasesUrl: string | null;
+  /** "linux", "windows" or "macos", and the package type (appimage, deb, rpm, nsis, msi, app) when known. */
+  os: string;
+  bundle: string | null;
 }
 
 export const secretGet = (key: string) => invoke<string | null>('secret_get', { key });

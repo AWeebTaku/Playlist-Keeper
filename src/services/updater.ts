@@ -2,6 +2,7 @@
 import { openUrl } from '@tauri-apps/plugin-opener';
 import { relaunch } from '@tauri-apps/plugin-process';
 import { check } from '@tauri-apps/plugin-updater';
+import type { UpdateSupport } from './tauri';
 
 export interface Available {
   version: string;
@@ -38,6 +39,17 @@ export async function checkForUpdate(): Promise<Available | null> {
       await relaunch();
     },
   };
+}
+
+/** One sentence on how an update is installed on this system. */
+export function updateHow(u: UpdateSupport): string {
+  if (!u.supported) return `${u.reason ?? 'This install is managed by your package manager'}. Download the new package from GitHub and install it with your package manager (on Arch: sudo pacman -U).`;
+  if (u.os === 'windows') return 'On Windows the app downloads the installer, runs it and restarts.';
+  if (u.os === 'macos') return 'On macOS the app downloads the new version, replaces itself and restarts.';
+  if (u.bundle === 'appimage') return 'This AppImage downloads the new version, replaces itself and restarts.';
+  if (u.bundle === 'deb') return 'On Debian-based systems the app installs the new .deb with dpkg (it asks for your password) and restarts.';
+  if (u.bundle === 'rpm') return 'On RPM-based systems the app installs the new .rpm (it asks for your password) and restarts.';
+  return 'The app downloads the new version and restarts.';
 }
 
 export const openReleasesPage = (url: string) => openUrl(url);

@@ -5,7 +5,7 @@ import { client, openRepo, restoreSession, runSync, setClient, signOut } from '.
 import type { Repo } from '../services/db';
 import { refreshLibrary, type YtClient } from '../services/actions';
 import { AuthError, messageOf } from '../services/errors';
-import { checkForUpdate, openReleasesPage, type Available } from '../services/updater';
+import { checkForUpdate, openReleasesPage, updateHow, type Available } from '../services/updater';
 import { updateSupport, type UpdateSupport } from '../services/tauri';
 import { signInWithBrowserCookies, signInWithPastedCookie } from '../services/auth';
 
@@ -65,7 +65,12 @@ class Store {
 
   update = $state<Available | null>(null);
   /** Whether this install can update itself (false for e.g. the Arch package) and where to get a new package instead. */
-  updates = $state<UpdateSupport>({ supported: true, reason: null, releasesUrl: null });
+  updates = $state<UpdateSupport>({ supported: true, reason: null, releasesUrl: null, os: '', bundle: null });
+  /** The last manual check found nothing newer. */
+  upToDate = $state(false);
+  aboutOpen = $state(false);
+  /** Project page: the website is not built yet. */
+  readonly website: string | null = null;
   updateState = $state<'idle' | 'checking' | 'installing'>('idle');
   updatePct = $state<number | null>(null);
 
@@ -115,18 +120,29 @@ class Store {
   async checkUpdate(quiet = false) {
     if (this.updateState !== 'idle') return;
     this.updateState = 'checking';
+    this.upToDate = false;
     try {
       this.update = await checkForUpdate();
-      if (!this.update && !quiet) this.toast('You are on the latest version.');
+      this.upToDate = !this.update;
+      if (this.update && !quiet && this.updates.releasesUrl && (await this.ask(`Version ${this.update.version} is available`, `${updateHow(this.updates)}\n\nOpen the release page on GitHub to see what is new and download it?`, 'Open GitHub'))) this.openReleases();
     } catch (e) {
-      if (!quiet) this.toast(`Could not check for updates: ${messageOf(e)}`, true);
+      if (!quiet) this.toast(`Could not reach the update server (${messageOf(e)}). Releases are listed on GitHub.`, true);
     } finally {
       this.updateState = 'idle';
     }
   }
 
   openReleases() {
-    if (this.updates.releasesUrl) void openReleasesPage(this.updates.releasesUrl).catch(() => undefined);
+    this.openLink(this.updates.releasesUrl);
+  }
+
+  openLink(url: string | null) {
+    if (url) void openReleasesPage(url).catch(() => undefined);
+  }
+
+  /** The GitHub project page (the releases URL without its /releases/... tail). */
+  get repoUrl() {
+    return this.updates.releasesUrl?.replace(/\/releases(\/.*)?$/u, '') ?? null;
   }
 
   async installUpdate() {
@@ -238,13 +254,11 @@ class Store {
     this.profileOpen = false;
     this.connectError = '';
     this.canGoBack = true;
-    this.phase = 'connect';
   }
 
   cancelReconnect() {
     this.connectError = '';
     this.canGoBack = false;
-    this.phase = 'ready';
   }
 
   /** Remove the saved login and show the Connect screen. The saved playlist history stays on this computer. */

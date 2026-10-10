@@ -5,6 +5,7 @@
   import MagnifyingGlassIcon from 'phosphor-svelte/lib/MagnifyingGlassIcon';
   import PlusIcon from 'phosphor-svelte/lib/PlusIcon';
   import QueueIcon from 'phosphor-svelte/lib/QueueIcon';
+  import Dropdown from './Dropdown.svelte';
   import Segmented from './Segmented.svelte';
   import TrackRow from './TrackRow.svelte';
   import { artistOf, titleOf } from './util';
@@ -91,8 +92,8 @@
   {/if}
 {:else}
   <div class="bar">
-    <label>A <select bind:value={a}>{#each lists as p (p.id)}<option value={p.id}>{p.title}</option>{/each}</select></label>
-    <label>B <select bind:value={b}>{#each lists as p (p.id)}<option value={p.id}>{p.title}</option>{/each}</select></label>
+    <span class="mut">A</span><Dropdown label="Playlist A" width="240px" options={lists.map((p) => ({ value: p.id, label: p.title }))} bind:value={a} />
+    <span class="mut">B</span><Dropdown label="Playlist B" width="240px" options={lists.map((p) => ({ value: p.id, label: p.title }))} bind:value={b} />
     <button class="btn primary" disabled={busy || !b} onclick={runAb}><ArrowsLeftRightIcon size={16} weight="bold" />Compare</button>
   </div>
   {#if busy}

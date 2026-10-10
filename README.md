@@ -46,7 +46,7 @@ clicks because they only add.
 ## Install and first launch
 
 Download the installer for your system from the project's **Releases** page (file names look like
-`Playlist Keeper_x.y.z_...`; GitHub may show spaces as dots). After the first install the app updates itself (it asks
+`playlist-keeper_x.y.z_...` on Linux, `Playlist Keeper_x.y.z_...` on Windows and macOS; GitHub may show spaces as dots). After the first install the app updates itself (it asks
 before installing an update).
 
 These builds are **not code-signed** (a deliberate choice), so the first launch needs one extra step:
@@ -55,10 +55,10 @@ These builds are **not code-signed** (a deliberate choice), so the first launch 
 |---|---|---|
 | **Windows 10/11** | `Playlist Keeper_x.y.z_x64-setup.exe` (installs for the current user, no admin rights) or the `.msi` | SmartScreen shows "Windows protected your PC": click **More info**, then **Run anyway**. Needs the Microsoft Edge WebView2 runtime, which is already part of Windows 11 and current Windows 10. |
 | **macOS 11+** (Apple silicon and Intel) | `Playlist Keeper_x.y.z_universal.dmg` | Drag the app to Applications. On macOS 14 and earlier: right-click the app, **Open**, **Open**. On macOS 15 and later: try to open it once, then **System Settings > Privacy & Security > Open Anyway**. Or in Terminal: `xattr -dr com.apple.quarantine "/Applications/Playlist Keeper.app"`. |
-| **Debian, Ubuntu, Mint, Pop!_OS** | `Playlist Keeper_x.y.z_amd64.deb` | `sudo apt install ./Playlist*.deb` (pulls in WebKitGTK and the other runtime libraries). |
-| **Fedora, RHEL-likes, openSUSE** | `Playlist Keeper-x.y.z-1.x86_64.rpm` | Fedora: `sudo dnf install ./Playlist*.rpm`. openSUSE: `sudo zypper install ./Playlist*.rpm`. |
+| **Debian, Ubuntu, Mint, Pop!_OS** | `playlist-keeper_x.y.z_amd64.deb` | `sudo apt install ./playlist*.deb` (pulls in WebKitGTK and the other runtime libraries). |
+| **Fedora, RHEL-likes, openSUSE** | `playlist-keeper-x.y.z-1.x86_64.rpm` | Fedora: `sudo dnf install ./playlist*.rpm`. openSUSE: `sudo zypper install ./playlist*.rpm`. |
 | **Arch, Manjaro, EndeavourOS** | `playlist-keeper-x.y.z-1-x86_64.pkg.tar.zst` | `sudo pacman -U playlist-keeper-*.pkg.tar.zst` (pulls in `webkit2gtk-4.1` and `gtk3`). |
-| **Any glibc Linux (Gentoo, NixOS, ...)** | `Playlist Keeper_x.y.z_amd64.AppImage` | `chmod +x Playlist*.AppImage && ./Playlist*.AppImage`. If it complains about FUSE: install `libfuse2` (Ubuntu 24.04: `libfuse2t64`) or run `./Playlist*.AppImage --appimage-extract-and-run`. On Arch you can also build from source (below). |
+| **Any glibc Linux (Gentoo, NixOS, ...)** | `playlist-keeper_x.y.z_amd64.AppImage` | `chmod +x playlist*.AppImage && ./playlist*.AppImage`. If it complains about FUSE: install `libfuse2` (Ubuntu 24.04: `libfuse2t64`) or run `./playlist*.AppImage --appimage-extract-and-run`. On Arch you can also build from source (below). |
 
 The apps update themselves where the system allows it: the AppImage, `.deb` and `.rpm` (the update asks for your
 password to run `dpkg` or `rpm`), Windows and macOS. The Arch package is managed by `pacman`, so there the profile card

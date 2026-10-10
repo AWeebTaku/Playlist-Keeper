@@ -1,0 +1,9 @@
+{
+  "productName": "playlist-keeper",
+  "bundle": {
+    "linux": {
+      "deb": { "desktopTemplate": "linux/playlist-keeper.desktop" },
+      "rpm": { "desktopTemplate": "linux/playlist-keeper.desktop" }
+    }
+  }
+}

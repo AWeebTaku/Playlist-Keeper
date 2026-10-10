@@ -14,7 +14,7 @@
   /* light */
   --bg: #f9f9f9;
   --glass: rgb(255 255 255 / 0.78);
-  --glass-strong: rgb(255 255 255 / 0.94);
+  --glass-strong: rgb(255 255 255 / 0.985);
   --surface: rgb(0 0 0 / 0.045);
   --surface-hover: rgb(0 0 0 / 0.08);
   --surface-solid: #ffffff;
@@ -35,6 +35,7 @@
   --on-danger: #ffffff;
   --glow-a: rgb(196 64 90 / 0.07);
   --glow-b: rgb(212 88 74 / 0.05);
+  --scrim: rgb(20 20 30 / 0.34);
   --shadow: 0 1px 2px rgb(0 0 0 / 0.06), 0 12px 32px rgb(0 0 0 / 0.1);
   --shadow-pop: 0 12px 40px rgb(0 0 0 / 0.18);
   color-scheme: light;
@@ -44,7 +45,7 @@
   :root:not([data-theme='light']) {
     --bg: #030303;
     --glass: rgb(22 22 22 / 0.7);
-    --glass-strong: rgb(30 30 30 / 0.92);
+    --glass-strong: rgb(30 30 30 / 0.985);
     --surface: rgb(255 255 255 / 0.06);
     --surface-hover: rgb(255 255 255 / 0.11);
     --surface-solid: #181818;
@@ -61,6 +62,7 @@
     --danger: #c4122f;
     --glow-a: rgb(196 64 90 / 0.16);
     --glow-b: rgb(212 88 74 / 0.10);
+    --scrim: rgb(0 0 0 / 0.45);
     --shadow: 0 1px 2px rgb(0 0 0 / 0.4), 0 16px 40px rgb(0 0 0 / 0.45);
     --shadow-pop: 0 16px 48px rgb(0 0 0 / 0.6);
     color-scheme: dark;
@@ -70,7 +72,7 @@
 :root[data-theme='dark'] {
   --bg: #030303;
   --glass: rgb(22 22 22 / 0.7);
-  --glass-strong: rgb(30 30 30 / 0.92);
+  --glass-strong: rgb(30 30 30 / 0.985);
   --surface: rgb(255 255 255 / 0.06);
   --surface-hover: rgb(255 255 255 / 0.11);
   --surface-solid: #181818;
@@ -87,6 +89,7 @@
   --danger: #c4122f;
   --glow-a: rgb(196 64 90 / 0.16);
   --glow-b: rgb(212 88 74 / 0.10);
+  --scrim: rgb(0 0 0 / 0.45);
   --shadow: 0 1px 2px rgb(0 0 0 / 0.4), 0 16px 40px rgb(0 0 0 / 0.45);
   --shadow-pop: 0 16px 48px rgb(0 0 0 / 0.6);
   color-scheme: dark;

@@ -1,0 +1,11 @@
+[Desktop Entry]
+Categories={{categories}}
+{{#if comment}}
+Comment={{comment}}
+{{/if}}
+Exec={{exec}}
+StartupWMClass=playlist-keeper
+Icon={{icon}}
+Name=Playlist Keeper
+Terminal=false
+Type=Application

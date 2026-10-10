@@ -4,6 +4,7 @@
   import ArrowsCounterClockwiseIcon from 'phosphor-svelte/lib/ArrowsCounterClockwiseIcon';
   import MagnifyingGlassIcon from 'phosphor-svelte/lib/MagnifyingGlassIcon';
   import PlusIcon from 'phosphor-svelte/lib/PlusIcon';
+  import Dropdown from './Dropdown.svelte';
   import TrackRow from './TrackRow.svelte';
   import { artistOf, mmss, titleOf } from './util';
   import { store } from './store.svelte';
@@ -55,7 +56,8 @@
   <label>Shorter than <input type="range" min="30" max="300" step="10" bind:value={max} /> <b class="dur" style="display: inline-block; text-align: left">{mmss(max)}</b></label>
   <label class="switch"><input type="checkbox" bind:checked={themedOnly} /> Only openings, endings, intros, outros and themes</label>
   <span class="grow"></span>
-  <label>Add to <select bind:value={target} aria-label="Target playlist">{#each targets as p (p.id)}<option value={p.id}>{p.title}</option>{/each}</select></label>
+  <span class="mut">Add to</span>
+  <Dropdown label="Target playlist" width="240px" options={targets.map((p) => ({ value: p.id, label: p.title }))} bind:value={target} />
 </div>
 
 {#if clips.length}

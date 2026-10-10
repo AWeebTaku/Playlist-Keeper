@@ -1,5 +1,7 @@
 <script lang="ts">
   import ArrowCircleUpIcon from 'phosphor-svelte/lib/ArrowCircleUpIcon';
+  import CheckCircleIcon from 'phosphor-svelte/lib/CheckCircleIcon';
+  import InfoIcon from 'phosphor-svelte/lib/InfoIcon';
   import ArrowsClockwiseIcon from 'phosphor-svelte/lib/ArrowsClockwiseIcon';
   import DesktopIcon from 'phosphor-svelte/lib/DesktopIcon';
   import MoonIcon from 'phosphor-svelte/lib/MoonIcon';
@@ -8,6 +10,7 @@
   import SunIcon from 'phosphor-svelte/lib/SunIcon';
   import Avatar from './Avatar.svelte';
   import Segmented from './Segmented.svelte';
+  import { updateHow } from '../services/updater';
   import { store } from './store.svelte';
 
   let button = $state<HTMLButtonElement>();
@@ -60,15 +63,15 @@
           <ArrowCircleUpIcon size={22} weight="fill" />
           <span>
             <div>Version {store.update.version} is available</div>
-            <div class="msub">{store.updateState === 'installing' ? `Installing${store.updatePct !== null ? ` ${store.updatePct}%` : '...'}` : 'Install and restart'}</div>
+            <div class="msub">{store.updateState === 'installing' ? `Installing${store.updatePct !== null ? ` ${store.updatePct}%` : '...'}` : updateHow(store.updates)}</div>
           </span>
         </button>
       {:else}
         <button class="menu-row" disabled={store.updateState !== 'idle'} onclick={() => store.checkUpdate()}>
-          <span class:spin={store.updateState === 'checking'} class="ico"><ArrowsClockwiseIcon size={22} /></span>
+          {#if store.upToDate}<CheckCircleIcon size={22} weight="fill" />{:else}<span class:spin={store.updateState === 'checking'} class="ico"><ArrowsClockwiseIcon size={22} /></span>{/if}
           <span>
-            <div>Check for updates</div>
-            <div class="msub">{store.updateState === 'checking' ? 'Checking...' : store.appVersion ? `You have version ${store.appVersion}` : 'Look for a newer version'}</div>
+            <div>{store.upToDate ? 'App is up to date' : 'Check for updates'}</div>
+            <div class="msub">{store.updateState === 'checking' ? 'Checking...' : store.upToDate ? `Version ${store.appVersion}. Select to check again.` : updateHow(store.updates)}</div>
           </span>
         </button>
       {/if}
@@ -87,7 +90,13 @@
         </span>
       </button>
 
-      <div class="menu-foot">Playlist Keeper{store.appVersion ? ` ${store.appVersion}` : ''}</div>
+      <button class="menu-row" onclick={() => { store.profileOpen = false; store.aboutOpen = true; }}>
+        <InfoIcon size={22} />
+        <span>
+          <div>About</div>
+          <div class="msub">Playlist Keeper{store.appVersion ? ` ${store.appVersion}` : ''}</div>
+        </span>
+      </button>
     </div>
   {/if}
 </span>

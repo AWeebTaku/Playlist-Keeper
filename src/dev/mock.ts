@@ -2,7 +2,7 @@
  * Dev-only look-and-feel harness: open the plain Vite page with ?mock=1 and the store is filled with FAKE data
  * (no Tauri, no network, no personal data) so every screen can be rendered in headless Chrome.
  *   ?mock=1&theme=dark|light&view=list|grid|compact|cards&open=<playlist title>&tab=items|short|compare|clean|dupes
- *   &menu=1&hidden=1&screen=home|connect|connect-back&empty=1
+ *   &menu=1&confirm=1&ddopen=1&hidden=1&screen=home|connect|connect-back&empty=1&about=1
  * Compiled out of release builds (only imported under import.meta.env.DEV).
  */
 import type { ItemRow, PlaylistRow } from '../services/db';
@@ -63,9 +63,11 @@ export function applyMock(store: typeof Store, q: URLSearchParams): void {
     if (q.has('tab')) store.tab = q.get('tab') as typeof store.tab;
   }
   if (q.has('menu')) store.profileOpen = true;
+  if (q.has('confirm')) void store.ask('Remove 3 entries?', 'From "Late Night Drive" on YouTube:\n\nNeon Harbor - Midnight Drive\nJuno Park - Paper Planes\n\nThis cannot be undone from here.', 'Remove', true);
   const screen = q.get('screen');
+  if (q.has('about')) store.aboutOpen = true;
   if (screen === 'connect' || screen === 'connect-back') {
     store.canGoBack = screen === 'connect-back';
-    store.phase = 'connect';
+    store.phase = screen === 'connect' ? 'connect' : 'ready';
   }
 }

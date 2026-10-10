@@ -182,7 +182,7 @@ jobs:
           useradd -m builder
           mkdir /build
           cp packaging/arch/PKGBUILD LICENSE /build/
-          cp "linux/Playlist-Keeper_${VERSION}_amd64.deb" /build/
+          cp linux/*.deb /build/playlist-keeper.deb
           chown -R builder /build
           cd /build
           runuser -u builder -- env PKGVER="$VERSION" REPO="$GITHUB_REPOSITORY" makepkg -df --noconfirm
