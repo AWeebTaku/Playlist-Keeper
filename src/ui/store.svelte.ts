@@ -5,7 +5,8 @@ import { client, openRepo, restoreSession, runSync, setClient, signOut } from '.
 import type { Repo } from '../services/db';
 import { refreshLibrary, type YtClient } from '../services/actions';
 import { AuthError, messageOf } from '../services/errors';
-import { checkForUpdate, type Available } from '../services/updater';
+import { checkForUpdate, openReleasesPage, type Available } from '../services/updater';
+import { updateSupport, type UpdateSupport } from '../services/tauri';
 import { signInWithBrowserCookies, signInWithPastedCookie } from '../services/auth';
 
 const get = (k: string) => {
@@ -63,6 +64,8 @@ class Store {
   private toastId = 0;
 
   update = $state<Available | null>(null);
+  /** Whether this install can update itself (false for e.g. the Arch package) and where to get a new package instead. */
+  updates = $state<UpdateSupport>({ supported: true, reason: null, releasesUrl: null });
   updateState = $state<'idle' | 'checking' | 'installing'>('idle');
   updatePct = $state<number | null>(null);
 
@@ -120,6 +123,10 @@ class Store {
     } finally {
       this.updateState = 'idle';
     }
+  }
+
+  openReleases() {
+    if (this.updates.releasesUrl) void openReleasesPage(this.updates.releasesUrl).catch(() => undefined);
   }
 
   async installUpdate() {
@@ -181,6 +188,7 @@ class Store {
       await this.reload();
       this.phase = (await restoreSession()) ? 'ready' : 'connect';
       void getVersion().then((v) => (this.appVersion = v)).catch(() => undefined);
+      void updateSupport().then((u) => (this.updates = u)).catch(() => undefined);
       if (this.phase === 'ready') {
         void this.loadProfile();
         void this.refreshCovers();

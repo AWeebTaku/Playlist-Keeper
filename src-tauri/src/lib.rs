@@ -313,6 +313,71 @@ fn default_browser() -> Option<String> {
     raw.as_deref().and_then(browser_from).map(str::to_string)
 }
 
+// ---- updates -----------------------------------------------------------------------------------
+
+#[derive(serde::Serialize)]
+#[serde(rename_all = "camelCase")]
+struct UpdateSupport {
+    supported: bool,
+    reason: Option<String>,
+    releases_url: Option<String>,
+}
+
+#[derive(Clone, Copy, PartialEq, Debug)]
+enum Packaging {
+    Deb,
+    Rpm,
+    Other,
+}
+
+/// Why in-app updating cannot work for this install, if it cannot. A deb or rpm install is updated by running `dpkg` / `rpm`;
+/// a package repacked for another distribution (the Arch package is made from the deb) has the marker but not the tool.
+fn why_not(p: Packaging, has_dpkg: bool, has_rpm: bool) -> Option<&'static str> {
+    match p {
+        Packaging::Deb if !has_dpkg => Some("This copy was installed from a package that this system's package manager manages, so the app cannot update itself. Install the new package from the releases page."),
+        Packaging::Rpm if !has_rpm => Some("This copy was installed from a package that this system's package manager manages, so the app cannot update itself. Install the new package from the releases page."),
+        _ => None,
+    }
+}
+
+fn on_path(program: &str) -> bool {
+    std::env::var_os("PATH")
+        .is_some_and(|p| std::env::split_paths(&p).any(|d| d.join(program).is_file()))
+}
+
+/// "https://github.com/OWNER/REPO/releases/latest/download/latest.json" -> "https://github.com/OWNER/REPO/releases/latest".
+/// A build that still has the placeholder repository has no releases page.
+fn releases_page(endpoint: &str) -> Option<String> {
+    let rest = endpoint.strip_prefix("https://github.com/")?;
+    let (repo, _) = rest.split_once("/releases/")?;
+    (repo != "OWNER/REPO").then(|| format!("https://github.com/{repo}/releases/latest"))
+}
+
+#[tauri::command]
+fn update_support(app: tauri::AppHandle) -> UpdateSupport {
+    use tauri::utils::config::BundleType;
+    let packaging = match tauri::utils::platform::bundle_type() {
+        Some(BundleType::Deb) => Packaging::Deb,
+        Some(BundleType::Rpm) => Packaging::Rpm,
+        _ => Packaging::Other,
+    };
+    let releases_url = app
+        .config()
+        .plugins
+        .0
+        .get("updater")
+        .and_then(|u| u.get("endpoints"))
+        .and_then(|e| e.get(0))
+        .and_then(|e| e.as_str())
+        .and_then(releases_page);
+    let reason = why_not(packaging, on_path("dpkg"), on_path("rpm")).map(str::to_string);
+    UpdateSupport {
+        supported: reason.is_none(),
+        reason,
+        releases_url,
+    }
+}
+
 // ---- data ------------------------------------------------------------------------------------
 
 fn migrations() -> Vec<Migration> {
@@ -365,7 +430,8 @@ pub fn run() {
             browser_cookies,
             browser_profiles,
             default_browser,
-            http_fetch
+            http_fetch,
+            update_support
         ])
         .run(tauri::generate_context!())
         .expect("error while running Playlist Keeper");
@@ -373,7 +439,7 @@ pub fn run() {
 
 #[cfg(test)]
 mod tests {
-    use super::browser_from;
+    use super::{browser_from, releases_page, why_not, Packaging};
 
     #[test]
     fn maps_desktop_ids_and_prog_ids() {
@@ -389,6 +455,31 @@ mod tests {
         assert_eq!(browser_from("com.apple.Safari"), Some("safari"));
         assert_eq!(browser_from("librewolf.desktop"), Some("librewolf"));
         assert_eq!(browser_from("something-else"), None);
+    }
+
+    #[test]
+    fn in_app_updates_need_the_tool_that_installs_the_package() {
+        assert!(why_not(Packaging::Deb, true, false).is_none()); // Debian, Ubuntu
+        assert!(why_not(Packaging::Rpm, false, true).is_none()); // Fedora, openSUSE
+        assert!(why_not(Packaging::Deb, false, false).is_some()); // the Arch package: deb marker, no dpkg
+        assert!(why_not(Packaging::Rpm, true, false).is_some());
+        assert!(why_not(Packaging::Other, false, false).is_none()); // AppImage, Windows, macOS
+    }
+
+    #[test]
+    fn finds_the_releases_page_from_the_update_feed_url() {
+        assert_eq!(
+            releases_page(
+                "https://github.com/me/Playlist-Keeper/releases/latest/download/latest.json"
+            )
+            .as_deref(),
+            Some("https://github.com/me/Playlist-Keeper/releases/latest")
+        );
+        assert_eq!(
+            releases_page("https://github.com/OWNER/REPO/releases/latest/download/latest.json"),
+            None
+        );
+        assert_eq!(releases_page("https://example.com/latest.json"), None);
     }
 
     #[test]

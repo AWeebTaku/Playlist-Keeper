@@ -57,10 +57,13 @@ These builds are **not code-signed** (a deliberate choice), so the first launch 
 | **macOS 11+** (Apple silicon and Intel) | `Playlist Keeper_x.y.z_universal.dmg` | Drag the app to Applications. On macOS 14 and earlier: right-click the app, **Open**, **Open**. On macOS 15 and later: try to open it once, then **System Settings > Privacy & Security > Open Anyway**. Or in Terminal: `xattr -dr com.apple.quarantine "/Applications/Playlist Keeper.app"`. |
 | **Debian, Ubuntu, Mint, Pop!_OS** | `Playlist Keeper_x.y.z_amd64.deb` | `sudo apt install ./Playlist*.deb` (pulls in WebKitGTK and the other runtime libraries). |
 | **Fedora, RHEL-likes, openSUSE** | `Playlist Keeper-x.y.z-1.x86_64.rpm` | Fedora: `sudo dnf install ./Playlist*.rpm`. openSUSE: `sudo zypper install ./Playlist*.rpm`. |
-| **Any glibc Linux (Arch, Gentoo, NixOS, ...)** | `Playlist Keeper_x.y.z_amd64.AppImage` | `chmod +x Playlist*.AppImage && ./Playlist*.AppImage`. If it complains about FUSE: install `libfuse2` (Ubuntu 24.04: `libfuse2t64`) or run `./Playlist*.AppImage --appimage-extract-and-run`. On Arch you can also build from source (below). |
+| **Arch, Manjaro, EndeavourOS** | `playlist-keeper-x.y.z-1-x86_64.pkg.tar.zst` | `sudo pacman -U playlist-keeper-*.pkg.tar.zst` (pulls in `webkit2gtk-4.1` and `gtk3`). |
+| **Any glibc Linux (Gentoo, NixOS, ...)** | `Playlist Keeper_x.y.z_amd64.AppImage` | `chmod +x Playlist*.AppImage && ./Playlist*.AppImage`. If it complains about FUSE: install `libfuse2` (Ubuntu 24.04: `libfuse2t64`) or run `./Playlist*.AppImage --appimage-extract-and-run`. On Arch you can also build from source (below). |
 
-Only the AppImage, Windows and macOS builds can update themselves; `.deb` and `.rpm` packages are updated by
-downloading the new package.
+The apps update themselves where the system allows it: the AppImage, `.deb` and `.rpm` (the update asks for your
+password to run `dpkg` or `rpm`), Windows and macOS. The Arch package is managed by `pacman`, so there the profile card
+shows "Version x is available" and opens the releases page; install the new `.pkg.tar.zst` yourself. Each release also
+contains `SHA256SUMS.txt` to verify downloads.
 
 Linux also needs a **Secret Service** provider running (it holds your login): GNOME Keyring or KWallet (both are
 present on a normal GNOME/KDE desktop), or KeePassXC. On a minimal window manager install and start one, for example
@@ -305,10 +308,28 @@ available), `VITE_CONNECT=1` (show the Connect screen without signing out).
 
 ## Releasing and auto-update
 
-Pushing a version tag builds installers on GitHub Actions for Linux, Windows and macOS (universal), publishes a GitHub
-release, and publishes `latest.json`, the feed the app checks on start and from **Check for updates**. The app asks
+Releases are automatic. `.github/workflows/release.yml` builds installers on GitHub Actions and publishes a GitHub
+release with a feed (`latest.json`) that the installed apps check on start and from **Check for updates**; the app asks
 before installing. Updates are verified with Tauri's update key; this is separate from OS code signing, which is not
 used (see [Install](#install-and-first-launch) for the first-launch warnings).
+
+| What you do | What happens |
+|---|---|
+| **Push to `master`** with changes to the app (`src/`, `src-tauri/`, `package*.json`, config) | Checks run, then **Linux (deb, rpm, AppImage, Arch package) and Windows (exe, msi)** are built and published as the next patch version (0.1.0, then 0.1.1, 0.1.2, ...), with release notes generated from the commits. |
+| Push only docs, tests, dev tooling or workflow files, or put **`[skip release]`** in the commit message | Nothing is released. |
+| **Actions > release > Run workflow**, pick `minor` or `major` | A full release including **macOS** (universal dmg, Apple silicon and Intel). Tick "Include macOS" to add macOS to a patch release. |
+| Run workflow with **dry run** ticked | Builds Linux only and attaches the installers to the run; publishes nothing. Use it to test changes to the workflow. |
+| Push a tag `vX.Y.Z` yourself | Exactly that version on all three systems. |
+
+How it works: the version is computed from the existing release tags and written into the build only (nothing is
+committed, so there is no bot commit), tests, lint, audit and the Rust lint gate everything, and a release is created
+**only if every build succeeded**, with all files at once, so users are never offered a half-built release. A release
+without macOS has no macOS entry in the feed; macOS apps then simply report no update until the next release that has one.
+
+macOS is limited to minor and major releases on purpose: GitHub counts a macOS build as 10 minutes for each minute, and
+the repository is private (a free account has 2,000 minutes a month). A patch release costs roughly 60 billed minutes, a
+macOS build roughly 250 more. If the repository becomes public the minutes are free: change the line `macos = kind !== 'patch' || ...`
+in `scripts/release-plan.mjs` (and the push case) so macOS is always built.
 
 **One-time setup**
 
@@ -321,20 +342,14 @@ used (see [Install](#install-and-first-launch) for the first-launch warnings).
    `TAURI_SIGNING_PRIVATE_KEY` = the full contents of the key file, and
    `TAURI_SIGNING_PRIVATE_KEY_PASSWORD` = its password (empty for a key made without one).
 4. **Back up the key file.** If it is lost, installed copies can never be updated again.
+5. First run: **Actions > release > Run workflow** with **dry run** ticked, and check that it goes green. Then push a
+   small change to `master` and watch a release appear under **Releases**.
 
-**Every release**
-
-```
-npm run version:set -- 0.2.0          # keeps package.json, lockfile, tauri.conf.json and Cargo.toml in step
-git commit -am "v0.2.0"
-git tag v0.2.0
-git push --follow-tags
-```
-
-`.github/workflows/build.yml` runs the checks and builds unsigned installers on pushes and pull requests (nothing is
-published). `.github/workflows/release.yml` runs on `v*` tags, refuses a tag that does not match the app version, and
-publishes. The Windows and macOS builds can only be produced by these workflows and have not run yet.
-A local build keeps a placeholder update URL, so "Check for updates" in a local build reports that it could not check.
+`.github/workflows/build.yml` runs the checks and builds unsigned Linux and Windows installers for pull requests and manual
+runs (nothing is published). `.github/dependabot.yml` opens weekly pull requests that update the pinned GitHub Actions,
+npm packages and Rust crates. A local build keeps a placeholder update URL, so "Check for updates" in a local build
+reports that it could not check. To release a specific version by hand: `npm run version:set -- 0.3.0`, commit, `git tag v0.3.0`,
+`git push --follow-tags` (the tag decides the version, so the committed version only matters for local builds).
 
 ## Security and privacy
 
@@ -378,9 +393,11 @@ src/ui/         Svelte components; styles/tokens.css (colours, shapes), styles/f
 src/assets/     the app logo shown in the sidebar and on the Connect screen
 src/dev/        the in-app self-test (development only)
 src-tauri/      Rust shell: keychain, browser cookies, HTTP with allow-list, migrations, updater, capabilities, icons
-scripts/        set-version.mjs (version bump), ci-config.mjs (CI-only config edits), contrast.mjs (colour contrast check)
+scripts/        release-plan.mjs (version and platform decision), make-latest-json.mjs (update feed), set-version.mjs,
+                ci-config.mjs (CI-only config edits), contrast.mjs (colour contrast check)
+packaging/arch/ PKGBUILD that turns the Linux deb into the Arch package (built in CI)
 tests/          shared test helper (in-memory SQLite)
-.github/        build.yml (checks and unsigned builds), release.yml (publish on tags)
+.github/        build.yml (checks and unsigned builds for pull requests), release.yml (automatic releases), dependabot.yml
 ```
 
 ### Design decisions worth knowing

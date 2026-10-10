@@ -1,4 +1,5 @@
 /** Auto-update: checks the release feed, and installs only when the user asks. Update packages are verified with the key in tauri.conf.json. */
+import { openUrl } from '@tauri-apps/plugin-opener';
 import { relaunch } from '@tauri-apps/plugin-process';
 import { check } from '@tauri-apps/plugin-updater';
 
@@ -8,9 +9,18 @@ export interface Available {
   install(onProgress?: (pct: number | null) => void): Promise<void>;
 }
 
-/** The newer release, or null when up to date. Throws when the feed cannot be reached. */
+/** A release can lack a system (macOS is only built for minor and major releases): that means "no update for you yet", not a failure. */
+const NO_BUILD_FOR_THIS_SYSTEM = /platform.*not found|not found.*platform/iu;
+
+/** The newer release, or null when up to date (or when the newest release has no build for this system). Throws when the feed cannot be reached. */
 export async function checkForUpdate(): Promise<Available | null> {
-  const update = await check();
+  let update;
+  try {
+    update = await check();
+  } catch (e) {
+    if (NO_BUILD_FOR_THIS_SYSTEM.test(e instanceof Error ? e.message : String(e))) return null;
+    throw e;
+  }
   if (!update) return null;
   return {
     version: update.version,
@@ -29,3 +39,5 @@ export async function checkForUpdate(): Promise<Available | null> {
     },
   };
 }
+
+export const openReleasesPage = (url: string) => openUrl(url);

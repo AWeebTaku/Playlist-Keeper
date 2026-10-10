@@ -47,7 +47,15 @@
       <Segmented full label="Theme" options={[...THEMES]} value={store.theme} onchange={(v) => store.setTheme(v)} />
 
       <div class="menu-label">Account and app</div>
-      {#if store.update}
+      {#if store.update && !store.updates.supported}
+        <button class="menu-row accent" disabled={!store.updates.releasesUrl} onclick={() => store.openReleases()}>
+          <ArrowCircleUpIcon size={22} weight="fill" />
+          <span>
+            <div>Version {store.update.version} is available</div>
+            <div class="msub">{store.updates.releasesUrl ? 'Install the new package from the releases page' : (store.updates.reason ?? 'Update from your package manager')}</div>
+          </span>
+        </button>
+      {:else if store.update}
         <button class="menu-row accent" disabled={store.updateState === 'installing'} onclick={() => store.installUpdate()}>
           <ArrowCircleUpIcon size={22} weight="fill" />
           <span>

@@ -7,6 +7,7 @@ const COMMANDS: &[&str] = &[
     "browser_profiles",
     "default_browser",
     "http_fetch",
+    "update_support",
 ];
 
 fn main() {

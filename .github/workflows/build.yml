@@ -1,8 +1,9 @@
 name: build
 
+# Checks and unsigned installers for pull requests and manual runs. Pushes to master are checked by the release workflow
+# (which also publishes), so this one does not repeat them. macOS is left to the release workflow to save Actions minutes.
+
 on:
-  push:
-    branches: [main]
   pull_request:
   workflow_dispatch:
 
@@ -13,13 +14,13 @@ jobs:
   test:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7
         with:
           node-version: 24
           cache: npm
       - run: npm ci
-      - run: npm run check # svelte-check + eslint
+      - run: npm run check # svelte-check, eslint, colour contrast
       - run: npm test
       - run: npm audit --audit-level=high
 
@@ -29,59 +30,54 @@ jobs:
       fail-fast: false
       matrix:
         include:
-          - os: ubuntu-22.04 # deb, rpm, AppImage
-            args: ''
-          - os: windows-latest # msi, nsis (.exe)
-            args: ''
-          - os: macos-latest # universal .app and .dmg (Apple silicon + Intel)
-            args: --target universal-apple-darwin
+          - os: ubuntu-22.04
+            name: linux
+          - os: windows-latest
+            name: windows
     runs-on: ${{ matrix.os }}
+    defaults:
+      run:
+        shell: bash
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7
         with:
           node-version: 24
           cache: npm
-      - uses: dtolnay/rust-toolchain@stable
+      - uses: dtolnay/rust-toolchain@e2a55d2ffb04f378e9626c28d38b36d230d1e12f # v1
         with:
+          toolchain: stable
           components: clippy
-          targets: ${{ matrix.os == 'macos-latest' && 'aarch64-apple-darwin,x86_64-apple-darwin' || '' }}
-      - uses: swatinem/rust-cache@v2
+      - uses: swatinem/rust-cache@6323deb102c322ba6fcbdcafc7e3dddab59af2b6 # v2
         with:
           workspaces: src-tauri
       - name: Linux system libraries
-        if: startsWith(matrix.os, 'ubuntu')
+        if: matrix.name == 'linux'
         run: |
           sudo apt-get update
           sudo apt-get install -y libwebkit2gtk-4.1-dev libayatana-appindicator3-dev librsvg2-dev patchelf libdbus-1-dev
-      - run: npm ci
-      - name: Builds in CI have no update-signing key
+      - name: Builds here have no update-signing key
         run: node scripts/ci-config.mjs --no-updater-artifacts
-      - name: Rust lint and tests
-        if: startsWith(matrix.os, 'ubuntu')
+      - run: npm ci
+      - name: Rust lint, tests and dependency audit
+        if: matrix.name == 'linux'
         working-directory: src-tauri
         run: |
           cargo clippy --all-targets -- -D warnings
           cargo test --lib
-      - name: Rust dependency audit
-        if: startsWith(matrix.os, 'ubuntu')
-        uses: actions-rust-lang/audit@v1
+      - uses: actions-rust-lang/audit@72c09e02f132669d52284a3323acdb503cfc1a24 # v1
+        if: matrix.name == 'linux'
         with:
           workingDirectory: src-tauri
-      # No tagName/release inputs: this builds the installers but publishes nothing.
-      # Signing, notarization and publishing are deliberately not set up yet.
-      - uses: tauri-apps/tauri-action@v0
+      - run: npm run tauri build
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7
         with:
-          args: ${{ matrix.args }}
-      - uses: actions/upload-artifact@v4
-        with:
-          name: installers-${{ matrix.os }}
+          name: pr-installers-${{ matrix.name }}
+          retention-days: 3
           if-no-files-found: error
           path: |
             src-tauri/target/release/bundle/**/*.deb
             src-tauri/target/release/bundle/**/*.rpm
             src-tauri/target/release/bundle/**/*.AppImage
             src-tauri/target/release/bundle/**/*.msi
-            src-tauri/target/release/bundle/**/*.exe
-            src-tauri/target/release/bundle/**/*.dmg
-            src-tauri/target/universal-apple-darwin/release/bundle/**/*.dmg
+            src-tauri/target/release/bundle/**/*-setup.exe

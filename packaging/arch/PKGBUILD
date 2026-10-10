@@ -1,0 +1,28 @@
+# Repackages the .deb that the release workflow builds into a pacman package (nothing is compiled here).
+# Built by CI inside an archlinux container:  PKGVER=0.2.0 REPO=owner/name makepkg -df
+pkgname=playlist-keeper
+pkgver=${PKGVER:?set PKGVER to the release version}
+pkgrel=1
+pkgdesc='Track, rescue and organise your YouTube Music playlists'
+arch=('x86_64')
+url="https://github.com/${REPO:-OWNER/REPO}"
+license=('MIT')
+depends=('webkit2gtk-4.1' 'gtk3')
+optdepends=(
+  'gnome-keyring: Secret Service provider that stores your login'
+  'kwallet: Secret Service provider that stores your login (KDE)'
+  'keepassxc: Secret Service provider that stores your login'
+)
+options=('!strip' '!debug' '!lto')
+_deb="Playlist-Keeper_${pkgver}_amd64.deb"
+source=("$_deb" 'LICENSE')
+noextract=("$_deb")
+sha256sums=('SKIP' 'SKIP')
+
+package() {
+  cd "$srcdir"
+  # a .deb is an ar archive; its payload is data.tar.<compression>
+  bsdtar -xf "$_deb" 'data.tar.*'
+  bsdtar -xf data.tar.* -C "$pkgdir"
+  install -Dm644 LICENSE "$pkgdir/usr/share/licenses/$pkgname/LICENSE"
+}
