@@ -5,8 +5,8 @@ name: release
 #   * "Run workflow" (Actions tab)         -> patch / minor / major; macOS is included for minor and major, or when ticked; "dry_run" only builds Linux
 #   * push of a tag vX.Y.Z                 -> exactly that version, all three systems
 # Nothing is published unless every build succeeded. The version is computed from the existing tags and written into the
-# build checkout only (never committed), so there is no bot commit. Secrets needed: TAURI_SIGNING_PRIVATE_KEY and
-# TAURI_SIGNING_PRIVATE_KEY_PASSWORD (update signing, see README). The builds are not OS-code-signed.
+# build checkout only (never committed), so there is no bot commit. Secret needed: TAURI_SIGNING_PRIVATE_KEY (update signing,
+# see README); TAURI_SIGNING_PRIVATE_KEY_PASSWORD only if that key has a password (the generated one has none). Not OS-code-signed.
 
 on:
   push:
@@ -49,7 +49,7 @@ concurrency:
 jobs:
   plan:
     if: ${{ github.event_name != 'push' || github.ref_type == 'tag' || !contains(github.event.head_commit.message, '[skip release]') }}
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     outputs:
       version: ${{ steps.plan.outputs.version }}
       tag: ${{ steps.plan.outputs.tag }}
@@ -78,7 +78,7 @@ jobs:
 
   check:
     needs: plan
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
       - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7
@@ -89,6 +89,13 @@ jobs:
       - run: npm run check # svelte-check, eslint, colour contrast
       - run: npm test
       - run: npm audit --audit-level=high
+      - name: Check that the update signing key works (fails in seconds, not after a 15-minute build)
+        run: |
+          echo probe > probe.txt
+          npx tauri signer sign probe.txt > /dev/null
+        env:
+          TAURI_SIGNING_PRIVATE_KEY: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY }}
+          TAURI_SIGNING_PRIVATE_KEY_PASSWORD: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY_PASSWORD }}
 
   build:
     needs: [plan, check]
@@ -159,7 +166,7 @@ jobs:
 
   arch:
     needs: [plan, build]
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     container: archlinux:base-devel
     env:
       VERSION: ${{ needs.plan.outputs.version }}
@@ -192,7 +199,7 @@ jobs:
   publish:
     needs: [plan, build, arch]
     if: ${{ needs.plan.outputs.dry_run != 'true' }}
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     permissions:
       contents: write
     env:

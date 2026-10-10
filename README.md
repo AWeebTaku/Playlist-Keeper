@@ -338,9 +338,11 @@ in `scripts/release-plan.mjs` (and the push case) so macOS is always built.
 2. Create the update key (skip if `~/.tauri/playlist-keeper.key` exists; its public half is already in
    `src-tauri/tauri.conf.json`, so a **new** key means replacing `plugins.updater.pubkey` there too):
    `npx tauri signer generate -w ~/.tauri/playlist-keeper.key`
-3. Add two repository secrets (Settings > Secrets and variables > Actions):
-   `TAURI_SIGNING_PRIVATE_KEY` = the full contents of the key file, and
-   `TAURI_SIGNING_PRIVATE_KEY_PASSWORD` = its password (empty for a key made without one).
+3. Add one repository secret `TAURI_SIGNING_PRIVATE_KEY` (Settings > Secrets and variables > Actions) holding the full
+   contents of the key file, or, with the GitHub CLI: `gh secret set TAURI_SIGNING_PRIVATE_KEY < ~/.tauri/playlist-keeper.key`.
+   **Do not create `TAURI_SIGNING_PRIVATE_KEY_PASSWORD` for the generated key**: it has no password, GitHub cannot store an
+   empty secret, and any password makes signing fail with "incorrect updater private key password". Add that secret only
+   if you generated the key with a password. The release workflow checks the key first and fails within seconds if it is wrong.
 4. **Back up the key file.** If it is lost, installed copies can never be updated again.
 5. First run: **Actions > release > Run workflow** with **dry run** ticked, and check that it goes green. Then push a
    small change to `master` and watch a release appear under **Releases**.
