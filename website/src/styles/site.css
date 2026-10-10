@@ -96,7 +96,7 @@ h1, h2, h3, p { margin: 0; }
 
 /* nav: frosted glass that gains a border once you scroll */
 .nav { position: sticky; top: 0; z-index: 50; transition: background 0.25s, border-color 0.25s, backdrop-filter 0.25s; border-bottom: 1px solid transparent; }
-.nav.scrolled { background: var(--glass); backdrop-filter: blur(18px) saturate(1.4); -webkit-backdrop-filter: blur(18px) saturate(1.4); border-color: var(--line); }
+.nav.scrolled { background: color-mix(in srgb, var(--bg) 90%, transparent); backdrop-filter: blur(18px) saturate(1.4); -webkit-backdrop-filter: blur(18px) saturate(1.4); border-color: var(--line); }
 .nav .in { display: flex; align-items: center; gap: 22px; min-height: 66px; }
 .logo { display: inline-flex; align-items: center; gap: 10px; font-weight: 600; letter-spacing: -0.02em; font-size: 18px; text-decoration: none; }
 .logo img { width: 30px; height: 30px; border-radius: 8px; }
@@ -227,7 +227,8 @@ section { padding: clamp(56px, 9vw, 110px) 0; position: relative; }
 .distro .d > b { font-weight: 600; line-height: 1.25; } .distro .d > b small { display: block; font-weight: 400; color: var(--mut); font-size: 13px; }
 pre.code { margin: 0; padding: 10px 14px; border: 1px solid var(--line); border-radius: 8px; background: var(--code); font: 13.5px/1.5 var(--mono); overflow-x: auto; white-space: pre; }
 pre.code::before { content: '$ '; color: var(--accent-text); }
-.copy { display: inline-flex; align-items: center; gap: 6px; min-height: 34px; padding: 0 12px; border: 1px solid var(--line); border-radius: 8px; background: var(--surface); font-size: 13.5px; transition: background 0.2s, color 0.2s, transform 0.15s; }
+.acts { display: flex; align-items: center; gap: 8px; }
+.copy { display: inline-flex; align-items: center; gap: 6px; min-height: 36px; padding: 0 12px; border: 1px solid var(--line); border-radius: 8px; background: var(--surface); font-size: 13.5px; transition: background 0.2s, color 0.2s, transform 0.15s; }
 .copy:hover { background: var(--surface-hover); } .copy:active { transform: scale(0.95); } .copy.done { color: var(--ok); border-color: var(--ok); }
 .subtle { display: flex; flex-wrap: wrap; gap: 8px 22px; margin-top: 22px; font-size: 14.5px; color: var(--mut); }
 .subtle a { color: var(--accent-text); text-decoration: none; } .subtle a:hover { text-decoration: underline; }
