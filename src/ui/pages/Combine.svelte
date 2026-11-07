@@ -8,7 +8,7 @@
   import WarningIcon from 'phosphor-svelte/lib/WarningIcon';
   import XIcon from 'phosphor-svelte/lib/XIcon';
   import { PLAYLIST_LIMIT, partTitles, type Order } from '../../core/combine';
-  import { flow } from './combine.svelte';
+  import { flow } from './combineFlow.svelte';
   import Cover from '../components/Cover.svelte';
   import Dropdown from '../components/Dropdown.svelte';
   import type { DropdownOption } from '../components/dropdown';
