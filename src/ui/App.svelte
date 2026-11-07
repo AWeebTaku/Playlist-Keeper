@@ -3,12 +3,12 @@
   import CheckCircleIcon from 'phosphor-svelte/lib/CheckCircleIcon';
   import WarningCircleIcon from 'phosphor-svelte/lib/WarningCircleIcon';
   import { fly } from 'svelte/transition';
-  import About from './About.svelte';
-  import Confirm from './Confirm.svelte';
-  import Connect from './Connect.svelte';
-  import Sidebar from './Sidebar.svelte';
-  import Playlist from './Playlist.svelte';
-  import { store } from './store.svelte';
+  import About from './shell/About.svelte';
+  import Confirm from './shell/Confirm.svelte';
+  import Connect from './pages/Connect.svelte';
+  import Sidebar from './shell/Sidebar.svelte';
+  import Playlist from './pages/Playlist.svelte';
+  import { store } from './state/store.svelte';
 
   onMount(() => void store.boot());
 </script>

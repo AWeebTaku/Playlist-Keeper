@@ -8,6 +8,8 @@ const COMMANDS: &[&str] = &[
     "default_browser",
     "http_fetch",
     "update_support",
+    "save_json_file",
+    "open_json_file",
 ];
 
 fn main() {

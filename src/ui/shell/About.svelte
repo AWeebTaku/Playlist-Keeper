@@ -1,8 +1,8 @@
 <script lang="ts">
   import GithubLogoIcon from 'phosphor-svelte/lib/GithubLogoIcon';
   import GlobeIcon from 'phosphor-svelte/lib/GlobeIcon';
-  import logo from '../assets/logo.png';
-  import { store } from './store.svelte';
+  import logo from '../../assets/logo.png';
+  import { store } from '../state/store.svelte';
 </script>
 
 <svelte:window onkeydown={(e) => store.aboutOpen && e.key === 'Escape' && (store.aboutOpen = false)} />

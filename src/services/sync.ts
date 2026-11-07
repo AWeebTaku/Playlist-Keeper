@@ -8,6 +8,8 @@ import type { LibraryPlaylist } from './parse';
 export interface YtReader {
   libraryPlaylists(): Promise<LibraryPlaylist[]>;
   playlistTracks(id: string): Promise<Track[]>;
+  /** The same playlist as youtube.com lists it (playable or not per video), or null when unreadable. */
+  playlistWebStates?(id: string): Promise<Map<string, 'ok' | 'unavailable'> | null>;
 }
 
 export interface SyncProgress {
@@ -44,11 +46,12 @@ async function pool<T>(items: T[], n: number, fn: (x: T) => Promise<void>): Prom
 export async function syncPlaylist(repo: Repo, yt: YtReader, p: { id: string; title: string; thumb?: string | null }, overrides?: Map<string, Override>, now = () => Date.now() / 1000): Promise<{ skipped?: string }> {
   await repo.ensurePlaylist(p.id, p.title, p.thumb);
   const tracks = await yt.playlistTracks(p.id);
+  const web = (await yt.playlistWebStates?.(p.id)) ?? null;
   const stored = await repo.stored(p.id);
   if (!tracks.length && stored.some((s) => s.status === 'ok' || s.status === 'unavailable')) {
     return { skipped: 'YouTube returned no tracks; kept the saved copy' };
   }
-  await repo.applyDiff(p.id, diffTracks(stored, tracks), now(), overrides ?? (await repo.overrides()));
+  await repo.applyDiff(p.id, diffTracks(stored, tracks, web), now(), overrides ?? (await repo.overrides()));
   await repo.touchSynced(p.id, now());
   return {};
 }

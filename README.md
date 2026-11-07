@@ -29,11 +29,12 @@ runs locally; nothing is sent anywhere except to YouTube itself.
 
 | Screen | What it does |
 |---|---|
-| **Items** | Every saved track with thumbnail, length and status (OK, **Greyed out**, **Removed**). *Find replacement* searches songs and videos for a re-upload; *Accept* adds it and removes the greyed-out original. List or grid view. |
-| **Short tracks** | Anime openings/endings, intros and outros are often a cut of a longer song. *Find full version* searches by song name plus show name and ranks longer results. *Add* keeps the clip; *Replace* removes it. Shows when the full version is already in a playlist. |
-| **Compare** | *Where else is each track?* lists the other playlists that already hold a track (same video, or same song and version). *Playlist A vs B* shows only in A, in both, only in B, with an Add button on each side. |
+| **Items** | Every saved track, numbered by its place in the playlist, with thumbnail, length and status (OK, **Greyed out**, **Removed**, and how it fares on youtube.com). A full **search and filter** bar (the list is windowed, so even a 5,000-song playlist scrolls smoothly with every track available): search title, artist and album together (every word must match; "quoted phrase"; `-word` leaves a word out), and filter by title, artist, album, length range (`2:30` or seconds), status (playable, greyed out, removed, unavailable or playable on youtube.com) and openings, endings and themes, then sort by playlist order, title, artist, length or date added. *Find replacement* searches songs and videos for a re-upload of a greyed-out track. *Find full version* (shown only on tracks inside your length filter, or when the openings/endings filter is on, never on a track just because it is short) finds the longer song; *Add* keeps the clip, *Replace* removes it, and it shows when the full version is already in a playlist. List or grid view. |
+| **Compare playlists** | Its own page in the sidebar (not a tab of one playlist). Choose a playlist, then *Where else is each track?* lists the other playlists that already hold a track (same video, or same song and version). Or *Side by side*: both playlists next to each other, numbered, with a mark on every position for same song (same video, or the same song in another upload), different song, or only in one list; *Differences only* hides the matching rows. Hide any song yourself and the lists line up again; *Show N you hid* lists those songs and checks each against the whole other playlist ("In B at #123" or "Not in B"), so you can see which songs are missing altogether. *Hide matching* is separate: it hides every song that matches at its position, and *Unhide N matching* brings only those back, leaving the songs you hid yourself alone. Or *Playlist A vs B*, which shows only in A, in both, only in B, with an Add button on each side. |
 | **Cleanup** | Tidier titles: "(Official Video)", "[Lyrics]", "HD" and similar are removed; remix, cover, slowed, mashup and other versions are kept. Every cleaned name is editable. Cleaned names live only in this app (YouTube cannot rename other people's videos). |
 | **Duplicates** | *Exact* (same video twice), *likely* (same song, version, artist and length, e.g. video vs lyric video) and *possible* (same title, different artist or length; never pre-selected). Covers, remixes, mashups and slowed versions are never grouped with the original. You choose the copy to keep and confirm before anything is removed. |
+| **Combine playlists** | Pick playlists, put them in the order you want, choose the song order (each playlist in turn, last song first, take turns, title A to Z, shuffle), and name the new playlist before anything is created. The chosen playlists are re-read first. Greyed-out songs, songs youtube.com lists as unavailable, repeated videos and (optionally) the same song uploaded twice are left out; covers, remixes and slowed versions are kept. The new playlist is **private**. YouTube allows 5,000 songs per playlist, so a bigger result continues in "Name (2)", "Name (3)" (you can rename them). If it stops halfway, *Try again* carries on without adding anything twice. |
+| **Export and import** | Each playlist has **Export** and **Import** buttons in its banner. *Export* saves that playlist to a readable JSON file: one track per line with title, artist, length, video id, and its status on YouTube Music and on youtube.com. *Import* adds the songs of such a file to the playlist; songs already in it (same video, or same song and version), unavailable songs and repeats are left out, and it asks before adding anything. |
 | **Sidebar** | A full-width **Sync all** button that fills up as it syncs, playlist search, and your playlists in sections: **Playlists**, and below them **Hidden** when "Show hidden" is on. Hide or unhide a playlist with the eye button on its row (hidden playlists are skipped by sync). The **Hidden** button next to the layout buttons shows or hides that section. Four layouts, chosen with the buttons above the list and remembered: **list with covers**, **cover grid**, **compact list** and **detailed cards**. |
 | **Home** | The start page: a greeting, your totals (playlists, tracks saved, greyed out or removed, last synced), a **Needs attention** list of the playlists with the most lost tracks, and a Sync button that stands out when your last sync is more than a day old. Click the logo or **Home** in the sidebar to return to it. |
 | **Profile card** | Your Google account photo and name at the top right. Click it for the **theme** switcher (System, Light, Dark), **Check for updates** (with install and restart when one is available), **Reconnect** (use another browser or account; your current login stays until the new one works) and **Log out** (removes the saved login; your saved playlist history stays on this computer). |
@@ -41,7 +42,9 @@ runs locally; nothing is sent anywhere except to YouTube itself.
 The look follows YouTube Music: near-black with a soft rose-coral glow, frosted-glass panels, blurred cover art behind the playlist
 title, Roboto, and a clean white light theme.
 
-Nothing on YouTube is changed without a confirmation dialog (Accept, Replace, Remove). Add and Compare's Add are single
+Each track is checked on **YouTube Music and on youtube.com**: a track greyed out on Music but still playable on youtube.com is labelled *Still plays on YouTube*, and one that is gone from both is labelled *Unavailable on YouTube too*. (If youtube.com cannot be read for a playlist, the previous answer is kept.)
+
+Nothing on YouTube is changed without a confirmation dialog (Accept, Replace, Remove, Create playlist). Add and Compare's Add are single
 clicks because they only add.
 
 ## Install and first launch
@@ -293,12 +296,12 @@ cookies):
 ```
 VITE_SELFTEST=1 npm run tauri dev       # sign-in, library, read a playlist, search, sync, replacements, duplicates, compare
 VITE_SELFTEST=write npm run tauri dev   # the same, plus: creates ONE throwaway playlist, adds / replaces / removes tracks, deletes it
-VITE_OPEN="My Playlist" VITE_TAB=short npm run tauri dev   # open a playlist and a tab on start
+VITE_OPEN="My Playlist" VITE_TAB=dupes npm run tauri dev   # open a playlist and a tab on start
 ```
 
 Look-and-feel check without YouTube, Tauri or any personal data: run `npm run dev` and open
 `http://127.0.0.1:1420/?mock=1` in a browser (dev builds only). It fills the app with fake playlists and tracks. Add
-`&theme=dark|light`, `&view=list|grid|compact|cards`, `&open=Late%20Night%20Drive`, `&tab=items|short|compare|clean|dupes`,
+`&theme=dark|light`, `&view=list|grid|compact|cards`, `&open=Late%20Night%20Drive`, `&tab=items|clean|dupes`, `&tracks=list|grid`, `&compare=1`, `&combine=1`, `&big=1` (5,000 tracks),
 `&menu=1`, `&hidden=1`, `&update=1`, `&empty=1`, `&screen=connect|connect-back`. Headless Chrome can screenshot these pages.
 
 More look-only options inside the real app: `VITE_THEME=light|dark`, `VITE_VIEW=list|grid|compact|cards` (playlist layout),
@@ -390,16 +393,20 @@ reports that it could not check. To release a specific version by hand: `npm run
 
 ```
 src/core/       pure TypeScript logic, no I/O, unit-tested: sanitize (title cleaning), dupes, diff (saved copy vs fresh read),
-                compare, score, full (full-version ranking)
-src/services/   YouTube client and parsers, auth, SQLite repository, sync, actions (what the screens do), updater
-src/ui/         Svelte components; styles/tokens.css (colours, shapes), styles/fonts.css, app.css (components)
-src/assets/     the app logo shown in the sidebar and on the Connect screen
-src/dev/        the in-app self-test (development only)
-src-tauri/      Rust shell: keychain, browser cookies, HTTP with allow-list, migrations, updater, capabilities, icons
+                compare, score, full (full-version ranking), filter (search/filter/sort), combine (plan a combined playlist),
+                backup (export/import file), sideBySide (position-by-position compare)
+src/services/   YouTube client and parsers, auth, SQLite repository, sync, actions (what the screens do), combine, backup, updater
+src/ui/         App.svelte, app.css and styles/ (tokens.css: colours, shapes, depth; fonts.css), then Svelte code by role:
+                pages/ (Home, Playlist, Combine, Compare, Connect), tabs/ (Items, Cleanup, Duplicates),
+                shell/ (Sidebar, playlist list, profile card, task indicator, About, confirm dialog),
+                components/ (Dropdown, VirtualList, Cover, TrackRow, ...), state/ (the store, background tasks, helpers)
+src/assets/     the app logo and the browser logos used in the sign-in dropdown
+src/dev/        the in-app self-test and the fake-data screenshot harness (development only)
+src-tauri/      Rust shell: keychain, browser cookies, HTTP with allow-list, native file dialogs, migrations, updater, capabilities, icons
 scripts/        release-plan.mjs (version and platform decision), make-latest-json.mjs (update feed), set-version.mjs,
                 ci-config.mjs (CI-only config edits), contrast.mjs (colour contrast check)
 packaging/arch/ PKGBUILD that turns the Linux deb into the Arch package (built in CI)
-tests/          shared test helper (in-memory SQLite)
+tests/          shared test helper (in-memory SQLite), release script tests
 website/        the landing page (Astro, static): `cd website && npm ci && npm run dev`; deployed to GitHub Pages by pages.yml
 .github/        build.yml (checks and unsigned builds for pull requests), release.yml (automatic releases), pages.yml (website),
                 dependabot.yml

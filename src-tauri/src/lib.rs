@@ -384,6 +384,57 @@ fn update_support(app: tauri::AppHandle) -> UpdateSupport {
     }
 }
 
+// ---- playlist files ---------------------------------------------------------------------------
+
+/// Largest export file the app will open (a playlist of 5,000 songs is well under 2 MB).
+const MAX_IMPORT_BYTES: u64 = 50 * 1024 * 1024;
+
+/// Ask where to save and write `content` there. Returns the chosen path, or None when the dialog was cancelled.
+/// The path comes from the native dialog, never from the web page, so the page cannot write anywhere on its own.
+#[tauri::command]
+async fn save_json_file(
+    app: tauri::AppHandle,
+    suggested_name: String,
+    content: String,
+) -> Result<Option<String>, String> {
+    use tauri_plugin_dialog::DialogExt;
+    let Some(chosen) = app
+        .dialog()
+        .file()
+        .add_filter("JSON", &["json"])
+        .set_file_name(&suggested_name)
+        .blocking_save_file()
+    else {
+        return Ok(None);
+    };
+    let path = chosen.into_path().map_err(|e| e.to_string())?;
+    std::fs::write(&path, content)
+        .map_err(|e| format!("Could not save {}: {e}", path.display()))?;
+    Ok(Some(path.display().to_string()))
+}
+
+/// Ask for a JSON file and return its text, or None when the dialog was cancelled.
+#[tauri::command]
+async fn open_json_file(app: tauri::AppHandle) -> Result<Option<String>, String> {
+    use tauri_plugin_dialog::DialogExt;
+    let Some(chosen) = app
+        .dialog()
+        .file()
+        .add_filter("JSON", &["json"])
+        .blocking_pick_file()
+    else {
+        return Ok(None);
+    };
+    let path = chosen.into_path().map_err(|e| e.to_string())?;
+    let size = std::fs::metadata(&path).map_err(|e| e.to_string())?.len();
+    if size > MAX_IMPORT_BYTES {
+        return Err("That file is too large to be a playlist export.".into());
+    }
+    std::fs::read_to_string(&path)
+        .map(Some)
+        .map_err(|e| format!("Could not read {}: {e}", path.display()))
+}
+
 // ---- data ------------------------------------------------------------------------------------
 
 fn migrations() -> Vec<Migration> {
@@ -398,6 +449,12 @@ fn migrations() -> Vec<Migration> {
             version: 2,
             description: "playlist cover art",
             sql: include_str!("../migrations/002_playlist_thumb.sql"),
+            kind: MigrationKind::Up,
+        },
+        Migration {
+            version: 3,
+            description: "availability on youtube.com",
+            sql: include_str!("../migrations/003_item_youtube_status.sql"),
             kind: MigrationKind::Up,
         },
     ]
@@ -422,6 +479,7 @@ pub fn run() {
                 .expect("http client"),
         ))
         .plugin(tauri_plugin_opener::init())
+        .plugin(tauri_plugin_dialog::init())
         .plugin(tauri_plugin_updater::Builder::new().build())
         .plugin(tauri_plugin_process::init())
         .plugin(
@@ -437,7 +495,9 @@ pub fn run() {
             browser_profiles,
             default_browser,
             http_fetch,
-            update_support
+            update_support,
+            save_json_file,
+            open_json_file
         ])
         .run(tauri::generate_context!())
         .expect("error while running Playlist Keeper");

@@ -25,3 +25,7 @@ export const browserProfiles = (browser: string) => invoke<BrowserProfile[]>('br
 export const browserCookies = (browser: string, profile?: string) => invoke<string>('browser_cookies', { browser, profile: profile ?? null });
 export const defaultBrowser = () => invoke<string | null>('default_browser');
 export const updateSupport = () => invoke<UpdateSupport>('update_support');
+/** Native "save as" dialog, then write the text there. Resolves to the saved path, or null when cancelled. */
+export const saveJsonFile = (suggestedName: string, content: string) => invoke<string | null>('save_json_file', { suggestedName, content });
+/** Native "open" dialog; resolves to the file's text, or null when cancelled. */
+export const openJsonFile = () => invoke<string | null>('open_json_file');

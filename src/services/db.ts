@@ -1,7 +1,7 @@
 import type { Diff } from '../core/diff';
 import { clean } from '../core/sanitize';
 import type { Row } from '../core/compare';
-import type { Status, Track } from '../core/types';
+import type { Status, Track, WebStatus } from '../core/types';
 import type { Sql } from './sql';
 
 export interface PlaylistRow {
@@ -29,6 +29,8 @@ export interface ItemRow {
   firstSeen: number;
   lastSeen: number;
   status: Status;
+  /** Availability on youtube.com (null: not checked yet). */
+  ytStatus: WebStatus | null;
   cleanTitle: string | null;
   cleanArtist: string | null;
   tags: string;
@@ -37,7 +39,7 @@ export interface ItemRow {
 type Raw = Record<string, unknown>;
 const chunks = <T>(a: T[], n: number): T[][] => Array.from({ length: Math.ceil(a.length / n) }, (_, i) => a.slice(i * n, i * n + n));
 const placeholders = (rows: number, cols: number) => Array.from({ length: rows }, () => `(${Array(cols).fill('?').join(',')})`).join(',');
-const ITEM_COLS = 'playlist_id,video_id,title,artists,album,duration,set_video_id,position,first_seen,last_seen,status,clean_title,clean_artist,tags';
+const ITEM_COLS = 'playlist_id,video_id,title,artists,album,duration,set_video_id,position,first_seen,last_seen,status,clean_title,clean_artist,tags,yt_status';
 
 const toItem = (r: Raw): ItemRow => ({
   playlistId: r.playlist_id as string,
@@ -51,6 +53,7 @@ const toItem = (r: Raw): ItemRow => ({
   firstSeen: (r.first_seen as number | null) ?? 0,
   lastSeen: (r.last_seen as number | null) ?? 0,
   status: (r.status as Status | null) ?? 'ok',
+  ytStatus: (r.yt_status as WebStatus | null) ?? null,
   cleanTitle: (r.clean_title as string | null) ?? null,
   cleanArtist: (r.clean_artist as string | null) ?? null,
   tags: (r.tags as string | null) ?? '',
@@ -157,23 +160,24 @@ export class Repo {
     for (const u of diff.upserts) {
       const t = u.track;
       const f = u.snapshot ? cleanedFields(t.title, t.artists, overrides.get(u.videoId)) : null;
-      const row = [playlistId, u.videoId, t.title, t.artists, t.album ?? null, t.duration, u.setVideoId, u.position, now, now, u.status, f?.cleanTitle ?? null, f?.cleanArtist ?? null, f?.tags ?? null];
+      const row = [playlistId, u.videoId, t.title, t.artists, t.album ?? null, t.duration, u.setVideoId, u.position, now, now, u.status, f?.cleanTitle ?? null, f?.cleanArtist ?? null, f?.tags ?? null, u.web];
       (u.snapshot ? snap : light).push(row);
     }
     for (const c of chunks(snap, 150)) {
       await this.sql.execute(
-        `INSERT INTO items(${ITEM_COLS}) VALUES ${placeholders(c.length, 14)}
+        `INSERT INTO items(${ITEM_COLS}) VALUES ${placeholders(c.length, 15)}
          ON CONFLICT(playlist_id,video_id) DO UPDATE SET title=excluded.title, artists=excluded.artists, album=excluded.album,
            duration=excluded.duration, set_video_id=excluded.set_video_id, position=excluded.position, last_seen=excluded.last_seen,
-           status=excluded.status, clean_title=excluded.clean_title, clean_artist=excluded.clean_artist, tags=excluded.tags`,
+           status=excluded.status, clean_title=excluded.clean_title, clean_artist=excluded.clean_artist, tags=excluded.tags,
+           yt_status=COALESCE(excluded.yt_status, items.yt_status)`,
         c.flat(),
       );
     }
     for (const c of chunks(light, 150)) {
       await this.sql.execute(
-        `INSERT INTO items(${ITEM_COLS}) VALUES ${placeholders(c.length, 14)}
+        `INSERT INTO items(${ITEM_COLS}) VALUES ${placeholders(c.length, 15)}
          ON CONFLICT(playlist_id,video_id) DO UPDATE SET status=excluded.status, set_video_id=excluded.set_video_id,
-           position=excluded.position, last_seen=excluded.last_seen`,
+           position=excluded.position, last_seen=excluded.last_seen, yt_status=COALESCE(excluded.yt_status, items.yt_status)`,
         c.flat(),
       );
     }
@@ -186,7 +190,7 @@ export class Repo {
   async addItem(playlistId: string, t: Pick<Track, 'videoId' | 'title' | 'artists' | 'duration'>, now: number): Promise<void> {
     const pos = ((await this.sql.select<Raw>('SELECT max(position) m FROM items WHERE playlist_id=?', [playlistId]))[0]?.m as number | null) ?? 0;
     const f = t.title ? cleanedFields(t.title, t.artists, (await this.overrides()).get(t.videoId)) : null;
-    await this.sql.execute(`INSERT OR IGNORE INTO items(${ITEM_COLS}) VALUES (?,?,?,?,NULL,?,NULL,?,?,?,'ok',?,?,?)`, [playlistId, t.videoId, t.title, t.artists, t.duration, pos + 1, now, now, f?.cleanTitle ?? null, f?.cleanArtist ?? null, f?.tags ?? null]);
+    await this.sql.execute(`INSERT OR IGNORE INTO items(${ITEM_COLS}) VALUES (?,?,?,?,NULL,?,NULL,?,?,?,'ok',?,?,?,NULL)`, [playlistId, t.videoId, t.title, t.artists, t.duration, pos + 1, now, now, f?.cleanTitle ?? null, f?.cleanArtist ?? null, f?.tags ?? null]);
   }
 
   /** Drop a playlist and its saved tracks from the local copy (the playlist no longer exists, or was only a test). */

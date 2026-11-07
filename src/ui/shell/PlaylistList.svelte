@@ -4,10 +4,10 @@
   import EyeIcon from 'phosphor-svelte/lib/EyeIcon';
   import EyeSlashIcon from 'phosphor-svelte/lib/EyeSlashIcon';
   import WarningIcon from 'phosphor-svelte/lib/WarningIcon';
-  import type { PlaylistRow } from '../services/db';
-  import Cover from './Cover.svelte';
-  import { store } from './store.svelte';
-  import { ago, coverUrls } from './util';
+  import type { PlaylistRow } from '../../services/db';
+  import Cover from '../components/Cover.svelte';
+  import { store } from '../state/store.svelte';
+  import { ago, coverUrls } from '../state/util';
 
   const match = (p: PlaylistRow) => !store.query || p.title.toLowerCase().includes(store.query.toLowerCase());
   const shown = $derived(store.playlists.filter((p) => !p.hidden && match(p)));

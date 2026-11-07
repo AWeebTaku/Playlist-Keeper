@@ -112,6 +112,26 @@ export function continuationToken(page: Json): string | null {
   return a ?? b ?? null;
 }
 
+/**
+ * Entries of a playlist page from youtube.com (not Music): playable or unavailable. youtube.com keeps deleted and private
+ * videos in the list as "[Deleted video]" / "[Private video]" with isPlayable false. A video listed twice counts as playable
+ * if any copy is.
+ */
+export function parseWebStates(page: Json): Map<string, 'ok' | 'unavailable'> {
+  const out = new Map<string, 'ok' | 'unavailable'>();
+  for (const r of findAll(page, 'playlistVideoRenderer')) {
+    const id: string | undefined = r?.videoId;
+    if (!id) continue;
+    const title: string = r.title?.runs?.[0]?.text ?? r.title?.simpleText ?? '';
+    const bad = r.isPlayable === false || /^\[(deleted|private) video\]$/iu.test(title.trim());
+    if (bad) {
+      if (!out.has(id)) out.set(id, 'unavailable');
+    }
+    else out.set(id, 'ok');
+  }
+  return out;
+}
+
 export interface LibraryPlaylist {
   id: string;
   title: string;

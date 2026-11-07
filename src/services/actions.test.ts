@@ -22,6 +22,7 @@ function fakeYt(lists: Record<string, Track[]>, searchResults: Hit[] = []) {
       calls.push(`add:${id}:${ids}`);
       lists[id]!.push(...ids.map((v) => T(v, 'Added ' + v)));
     },
+    createPlaylist: async () => 'NEW',
     removeEntries: async (id, sets) => {
       calls.push(`remove:${id}:${sets}`);
       lists[id] = lists[id]!.filter((t) => !sets.includes(t.setVideoId!));

@@ -17,21 +17,21 @@ if (import.meta.env.DEV) {
     window.addEventListener('error', (e) => send('error')('uncaught:', e.message, `${e.filename}:${e.lineno}`));
     window.addEventListener('unhandledrejection', (e) => send('error')('unhandled rejection:', e.reason));
   });
-  // dev only, for screenshots: VITE_OPEN="<playlist title>" [VITE_TAB=short|compare|clean|dupes] [VITE_VIEW=list|grid|compact|cards] [VITE_THEME=light|dark] [VITE_MENU=1] [VITE_HIDDEN=1] [VITE_FAKEUPDATE=1] [VITE_CONNECT=1]
-  if (import.meta.env.VITE_THEME) void import('./ui/store.svelte').then(({ store }) => store.setTheme(import.meta.env.VITE_THEME as 'light' | 'dark' | 'system'));
-  if (import.meta.env.VITE_CONNECT) void import('./ui/store.svelte').then(async ({ store }) => {
+  // dev only, for screenshots: VITE_OPEN="<playlist title>" [VITE_TAB=clean|dupes] [VITE_VIEW=list|grid|compact|cards] [VITE_THEME=light|dark] [VITE_MENU=1] [VITE_HIDDEN=1] [VITE_FAKEUPDATE=1] [VITE_CONNECT=1]
+  if (import.meta.env.VITE_THEME) void import('./ui/state/store.svelte').then(({ store }) => store.setTheme(import.meta.env.VITE_THEME as 'light' | 'dark' | 'system'));
+  if (import.meta.env.VITE_CONNECT) void import('./ui/state/store.svelte').then(async ({ store }) => {
     while (store.phase === 'boot') await new Promise((r) => setTimeout(r, 200));
     store.phase = 'connect'; // look only: the saved login is untouched
   });
   if (import.meta.env.VITE_MENU || import.meta.env.VITE_HIDDEN || import.meta.env.VITE_FAKEUPDATE) {
-    void import('./ui/store.svelte').then(async ({ store }) => {
+    void import('./ui/state/store.svelte').then(async ({ store }) => {
       while (store.phase !== 'ready') await new Promise((r) => setTimeout(r, 200));
       if (import.meta.env.VITE_HIDDEN) store.showHidden = true;
       if (import.meta.env.VITE_FAKEUPDATE) store.update = { version: '9.9.9', notes: '', install: async () => undefined };
       if (import.meta.env.VITE_MENU) store.profileOpen = true;
     });
   }
-  if (import.meta.env.VITE_OPEN) void import('./ui/store.svelte').then(async ({ store }) => {
+  if (import.meta.env.VITE_OPEN) void import('./ui/state/store.svelte').then(async ({ store }) => {
     while (store.phase !== 'ready') await new Promise((r) => setTimeout(r, 200));
     const p = store.playlists.find((x) => x.title === import.meta.env.VITE_OPEN);
     if (p) await store.select(p.id);

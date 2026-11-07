@@ -1,26 +1,25 @@
 <script lang="ts">
-  import ArrowsLeftRightIcon from 'phosphor-svelte/lib/ArrowsLeftRightIcon';
   import ClockIcon from 'phosphor-svelte/lib/ClockIcon';
   import CopyIcon from 'phosphor-svelte/lib/CopyIcon';
   import MusicNotesIcon from 'phosphor-svelte/lib/MusicNotesIcon';
   import SparkleIcon from 'phosphor-svelte/lib/SparkleIcon';
-  import TimerIcon from 'phosphor-svelte/lib/TimerIcon';
   import WarningIcon from 'phosphor-svelte/lib/WarningIcon';
-  import CleanTab from './CleanTab.svelte';
-  import CompareTab from './CompareTab.svelte';
-  import Cover from './Cover.svelte';
-  import DupesTab from './DupesTab.svelte';
+  import DownloadSimpleIcon from 'phosphor-svelte/lib/DownloadSimpleIcon';
+  import UploadSimpleIcon from 'phosphor-svelte/lib/UploadSimpleIcon';
+  import CleanTab from '../tabs/CleanTab.svelte';
+  import Combine from './Combine.svelte';
+  import Compare from './Compare.svelte';
+  import Cover from '../components/Cover.svelte';
+  import DupesTab from '../tabs/DupesTab.svelte';
   import Home from './Home.svelte';
-  import ItemsTab from './ItemsTab.svelte';
-  import ProfileMenu from './ProfileMenu.svelte';
-  import ShortTab from './ShortTab.svelte';
-  import { store } from './store.svelte';
-  import { ago, coverUrls } from './util';
+  import ItemsTab from '../tabs/ItemsTab.svelte';
+  import ProfileMenu from '../shell/ProfileMenu.svelte';
+  import TaskCenter from '../shell/TaskCenter.svelte';
+  import { store } from '../state/store.svelte';
+  import { ago, coverUrls } from '../state/util';
 
   const TABS = [
     ['items', 'Items', MusicNotesIcon],
-    ['short', 'Short tracks', TimerIcon],
-    ['compare', 'Compare', ArrowsLeftRightIcon],
     ['clean', 'Cleanup', SparkleIcon],
     ['dupes', 'Duplicates', CopyIcon],
   ] as const;
@@ -29,11 +28,15 @@
 </script>
 
 <div class="topbar glass">
-  <span class="where">{playlist ? 'Playlist' : 'Home'}</span>
-  <ProfileMenu />
+  <span class="where">{store.combine ? 'Combine' : store.compare ? 'Compare' : playlist ? 'Playlist' : 'Home'}</span>
+  <span class="top-end"><TaskCenter /><ProfileMenu /></span>
 </div>
 
-{#if playlist}
+{#if store.combine}
+  <section class="panel"><Combine /></section>
+{:else if store.compare}
+  <section class="panel"><Compare /></section>
+{:else if playlist}
   <header class="banner">
     <div class="banner-bg" style:background-image={covers[0] ? `url("${covers[0]}")` : 'none'}></div>
     <div class="banner-row">
@@ -46,6 +49,10 @@
           <span class="chip"><ClockIcon size={13} /> Synced {ago(playlist.lastSync)}</span>
         </div>
       </div>
+      <div class="banner-actions">
+        <button class="btn sm outline" title="Add songs from a JSON file to this playlist" onclick={() => store.importIntoPlaylist(playlist.id)}><UploadSimpleIcon size={16} /> Import</button>
+        <button class="btn sm outline" title="Save this playlist to a JSON file" onclick={() => store.exportPlaylists([playlist.id])}><DownloadSimpleIcon size={16} /> Export</button>
+      </div>
     </div>
   </header>
   <div class="tabs glass" role="tablist">
@@ -57,8 +64,6 @@
     {#key store.tab}
       <div class="rise">
         {#if store.tab === 'items'}<ItemsTab />
-        {:else if store.tab === 'short'}<ShortTab />
-        {:else if store.tab === 'compare'}<CompareTab />
         {:else if store.tab === 'clean'}<CleanTab />
         {:else}<DupesTab />{/if}
       </div>

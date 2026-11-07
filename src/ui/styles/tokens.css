@@ -10,6 +10,10 @@
   --r-card: 16px;
   --r-row: 12px;
   --r-thumb: 8px;
+  --ease: cubic-bezier(0.16, 1, 0.3, 1);
+  /* 1px top highlight that gives panels a physical edge */
+  --lift: inset 0 1px 0 rgb(255 255 255 / 0.9);
+  --lift-accent: inset 0 1px 0 rgb(255 255 255 / 0.28);
 
   /* light */
   --bg: #f9f9f9;
@@ -36,14 +40,14 @@
   --glow-a: rgb(196 64 90 / 0.07);
   --glow-b: rgb(212 88 74 / 0.05);
   --scrim: rgb(20 20 30 / 0.34);
-  --shadow: 0 1px 2px rgb(0 0 0 / 0.06), 0 12px 32px rgb(0 0 0 / 0.1);
-  --shadow-pop: 0 12px 40px rgb(0 0 0 / 0.18);
+  --shadow: 0 1px 2px rgb(14 4 8 / 0.06), 0 12px 32px rgb(14 4 8 / 0.1);
+  --shadow-pop: 0 12px 40px rgb(14 4 8 / 0.18);
   color-scheme: light;
 }
 
 @media (prefers-color-scheme: dark) {
   :root:not([data-theme='light']) {
-    --bg: #030303;
+    --bg: #08080a;
     --glass: rgb(22 22 22 / 0.7);
     --glass-strong: rgb(30 30 30 / 0.985);
     --surface: rgb(255 255 255 / 0.06);
@@ -63,14 +67,15 @@
     --glow-a: rgb(196 64 90 / 0.16);
     --glow-b: rgb(212 88 74 / 0.10);
     --scrim: rgb(0 0 0 / 0.45);
-    --shadow: 0 1px 2px rgb(0 0 0 / 0.4), 0 16px 40px rgb(0 0 0 / 0.45);
-    --shadow-pop: 0 16px 48px rgb(0 0 0 / 0.6);
+    --lift: inset 0 1px 0 rgb(255 255 255 / 0.055);
+    --shadow: 0 1px 2px rgb(14 4 8 / 0.4), 0 16px 40px rgb(14 4 8 / 0.45);
+    --shadow-pop: 0 16px 48px rgb(14 4 8 / 0.6);
     color-scheme: dark;
   }
 }
 
 :root[data-theme='dark'] {
-  --bg: #030303;
+  --bg: #08080a;
   --glass: rgb(22 22 22 / 0.7);
   --glass-strong: rgb(30 30 30 / 0.985);
   --surface: rgb(255 255 255 / 0.06);
@@ -90,7 +95,8 @@
   --glow-a: rgb(196 64 90 / 0.16);
   --glow-b: rgb(212 88 74 / 0.10);
   --scrim: rgb(0 0 0 / 0.45);
-  --shadow: 0 1px 2px rgb(0 0 0 / 0.4), 0 16px 40px rgb(0 0 0 / 0.45);
-  --shadow-pop: 0 16px 48px rgb(0 0 0 / 0.6);
+  --lift: inset 0 1px 0 rgb(255 255 255 / 0.055);
+  --shadow: 0 1px 2px rgb(14 4 8 / 0.4), 0 16px 40px rgb(14 4 8 / 0.45);
+  --shadow-pop: 0 16px 48px rgb(14 4 8 / 0.6);
   color-scheme: dark;
 }

@@ -1,10 +1,10 @@
 <script lang="ts">
-  import type { DupGroup } from '../core/dupes';
-  import { removeEntries, scanDuplicates } from '../services/actions';
+  import type { DupGroup } from '../../core/dupes';
+  import { removeEntries, scanDuplicates } from '../../services/actions';
   import MagnifyingGlassIcon from 'phosphor-svelte/lib/MagnifyingGlassIcon';
   import TrashIcon from 'phosphor-svelte/lib/TrashIcon';
-  import TrackRow from './TrackRow.svelte';
-  import { store } from './store.svelte';
+  import TrackRow from '../components/TrackRow.svelte';
+  import { store } from '../state/store.svelte';
 
   type G = DupGroup & { checked: boolean[] };
   let groups = $state<G[]>([]);

@@ -11,4 +11,6 @@ export interface Track {
   available: boolean;
 }
 
+/** How the same entry looks on youtube.com: playable, unavailable (deleted, private, blocked), or not listed there at all. */
+export type WebStatus = 'ok' | 'unavailable' | 'missing';
 export type Status = 'ok' | 'unavailable' | 'removed' | 'replaced';

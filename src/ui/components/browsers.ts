@@ -1,7 +1,7 @@
 import BrowserIcon from 'phosphor-svelte/lib/BrowserIcon';
 import { siBrave, siFirefox, siGooglechrome, siLibrewolf, siOpera, siVivaldi } from 'simple-icons';
-import chromiumLogo from '../assets/browsers/chromium.svg';
-import edgeLogo from '../assets/browsers/edge.svg';
+import chromiumLogo from '../../assets/browsers/chromium.svg';
+import edgeLogo from '../../assets/browsers/edge.svg';
 import type { DropdownOption } from './dropdown';
 
 type Brand = { path: string; hex: string };

@@ -1,5 +1,5 @@
 <script lang="ts">
-  import type { Profile } from '../services/parse';
+  import type { Profile } from '../../services/parse';
 
   let { profile, large = false }: { profile: Profile | null; large?: boolean } = $props();
   let failed = $state<string | null>(null);

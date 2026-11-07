@@ -1,6 +1,6 @@
 <script lang="ts">
   import TrashIcon from 'phosphor-svelte/lib/TrashIcon';
-  import { store } from './store.svelte';
+  import { store } from '../state/store.svelte';
 
   const d = $derived(store.dialog);
   let okButton = $state<HTMLButtonElement>();

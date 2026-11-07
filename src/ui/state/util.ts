@@ -1,8 +1,16 @@
-import type { ItemRow, PlaylistRow } from '../services/db';
+import type { ItemRow, PlaylistRow } from '../../services/db';
 
 export const thumb = (videoId: string) => `https://i.ytimg.com/vi/${encodeURIComponent(videoId)}/mqdefault.jpg`;
 export const mmss = (s: number | null) => (s == null ? '?' : s >= 3600 ? `${Math.floor(s / 3600)}:${String(Math.floor((s % 3600) / 60)).padStart(2, '0')}:${String(s % 60).padStart(2, '0')}` : `${Math.floor(s / 60)}:${String(s % 60).padStart(2, '0')}`);
 export const statusLabel = (s: ItemRow['status']) => (s === 'unavailable' ? 'Greyed out' : s === 'removed' ? 'Removed' : s === 'replaced' ? 'Replaced' : 'OK');
+/** How an entry fares on youtube.com compared with Music, as a chip (null when there is nothing to add). */
+export function webNote(i: ItemRow): { text: string; kind: 'link' | 'removed' | 'unavailable' } | null {
+  if (i.status === 'unavailable') {
+    if (i.ytStatus === 'ok') return { text: 'Still plays on YouTube', kind: 'link' };
+    if (i.ytStatus === 'unavailable') return { text: 'Unavailable on YouTube too', kind: 'removed' };
+  } else if (i.status === 'ok' && i.ytStatus === 'unavailable') return { text: 'Unavailable on YouTube', kind: 'unavailable' };
+  return null;
+}
 export const titleOf = (i: ItemRow) => i.cleanTitle || i.title || '(no saved title)';
 export const artistOf = (i: ItemRow) => i.cleanArtist || i.artists || 'Unknown artist';
 export const hideBroken = (e: Event) => ((e.currentTarget as HTMLImageElement).style.visibility = 'hidden');

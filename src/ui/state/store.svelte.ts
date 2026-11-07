@@ -1,13 +1,18 @@
-import type { ItemRow, PlaylistRow } from '../services/db';
+import type { ItemRow, PlaylistRow } from '../../services/db';
 import { getVersion } from '@tauri-apps/api/app';
-import type { Profile } from '../services/parse';
-import { client, openRepo, restoreSession, runSync, setClient, signOut } from '../services/app';
-import type { Repo } from '../services/db';
-import { refreshLibrary, type YtClient } from '../services/actions';
-import { AuthError, messageOf } from '../services/errors';
-import { checkForUpdate, openReleasesPage, updateHow, type Available } from '../services/updater';
-import { updateSupport, type UpdateSupport } from '../services/tauri';
-import { signInWithBrowserCookies, signInWithPastedCookie } from '../services/auth';
+import type { Profile } from '../../services/parse';
+import { client, openRepo, restoreSession, runSync, setClient, signOut } from '../../services/app';
+import type { Repo } from '../../services/db';
+import { refreshLibrary, type YtClient } from '../../services/actions';
+import { AuthError, messageOf } from '../../services/errors';
+import { checkForUpdate, openReleasesPage, updateHow, type Available } from '../../services/updater';
+import { openJsonFile, saveJsonFile, updateSupport, type UpdateSupport } from '../../services/tauri';
+import { collectExport } from '../../services/backup';
+import { parseExport } from '../../core/backup';
+import { PLAYLIST_LIMIT, planCombine, type Source } from '../../core/combine';
+import { addSongs, loadSources } from '../../services/combine';
+import { tasks } from './tasks.svelte';
+import { signInWithBrowserCookies, signInWithPastedCookie } from '../../services/auth';
 
 const get = (k: string) => {
   try {
@@ -69,12 +74,16 @@ class Store {
   /** The last manual check found nothing newer. */
   upToDate = $state(false);
   aboutOpen = $state(false);
+  /** The Combine page is showing instead of Home or a playlist. */
+  combine = $state(false);
+  /** The Compare page is showing. */
+  compare = $state(false);
   /** Project website (GitHub Pages, built from website/). */
   readonly website: string | null = 'https://aweebtaku.github.io/Playlist-Keeper/';
   updateState = $state<'idle' | 'checking' | 'installing'>('idle');
   updatePct = $state<number | null>(null);
 
-  tab = $state<'items' | 'short' | 'compare' | 'clean' | 'dupes'>('items');
+  tab = $state<'items' | 'clean' | 'dupes'>('items');
   dialog = $state<{ title: string; body: string; ok: string; danger: boolean; resolve: (v: boolean) => void } | null>(null);
 
   toast(text: string, bad = false) {
@@ -196,7 +205,7 @@ class Store {
     if (this.theme !== 'system') document.documentElement.dataset.theme = this.theme;
     if (import.meta.env.DEV && location.search.includes('mock=1')) {
       // look-and-feel harness with fake data (see src/dev/mock.ts); never used in release builds
-      const { applyMock } = await import('../dev/mock');
+      const { applyMock } = await import('../../dev/mock');
       applyMock(this, new URLSearchParams(location.search));
       return;
     }
@@ -277,7 +286,72 @@ class Store {
     this.toast('Logged out');
   }
 
+  openCombine() {
+    this.selected = null;
+    this.items = [];
+    this.profileOpen = false;
+    this.compare = false;
+    this.combine = true;
+  }
+
+  openCompare() {
+    this.selected = null;
+    this.items = [];
+    this.profileOpen = false;
+    this.combine = false;
+    this.compare = true;
+  }
+
+  /** Save playlists (title, tracks, availability) to a JSON file the user picks. */
+  async exportPlaylists(ids: string[]) {
+    const { text, name, count } = await collectExport(await openRepo(), ids, `Playlist Keeper ${this.appVersion}`.trim());
+    if (!count) return this.toast('Nothing to export yet. Press Sync all first.', true);
+    const path = await this.attempt(() => saveJsonFile(name, text));
+    if (path) this.toast(`Saved ${count} playlist${count > 1 ? 's' : ''} to ${path}`);
+  }
+
+  /**
+   * Add the songs of an export file to this playlist. Songs already in the playlist (same video, or the same song and
+   * version), unavailable songs and repeats are left out; it asks before adding anything.
+   */
+  async importIntoPlaylist(playlistId: string) {
+    const target = this.playlists.find((p) => p.id === playlistId);
+    if (!target) return;
+    const text = await this.attempt(() => openJsonFile());
+    if (text == null) return;
+    let fromFile: Source[];
+    try {
+      fromFile = parseExport(text);
+    } catch (e) {
+      return this.toast(messageOf(e), true);
+    }
+    const { repo, yt } = await this.ctx();
+    const read = await this.attempt(() => loadSources(repo, yt, [{ id: target.id, title: target.title }])); // current contents, so nothing is added twice
+    if (!read) return;
+    const plan = planCombine([...read, ...fromFile], { order: 'playlist', likely: true });
+    const room = Math.max(0, PLAYLIST_LIMIT - (plan.reports[0]?.total ?? 0));
+    const fresh = plan.tracks.filter((t) => t.from !== target.id);
+    const toAdd = fresh.slice(0, room);
+    const inFile = fromFile.reduce((n, s) => n + s.items.filter((i) => i.status === 'ok' || i.status === 'unavailable').length, 0);
+    if (!toAdd.length) return this.toast(room ? 'Nothing new to add: every playable song in the file is already in this playlist.' : `This playlist is full (${PLAYLIST_LIMIT.toLocaleString()} songs).`, true);
+    const skipped = inFile - toAdd.length;
+    const body = `${toAdd.length.toLocaleString()} of the ${inFile.toLocaleString()} songs in the file will be added to "${target.title}".${skipped ? ` ${skipped.toLocaleString()} are left out (already in the playlist, unavailable or repeated${fresh.length > toAdd.length ? `, or over the ${PLAYLIST_LIMIT.toLocaleString()}-song limit` : ''}).` : ''}`;
+    if (!(await this.ask('Add songs from the file?', body, 'Add songs'))) return;
+    const task = tasks.start({ title: `Importing into "${target.title}"`, total: toAdd.length, open: () => void this.select(playlistId) });
+    try {
+      const added = await addSongs(repo, yt, { id: target.id, title: target.title }, toAdd, (done, total) => tasks.patch(task, { done, total, detail: `${done.toLocaleString()} of ${total.toLocaleString()} songs added` }));
+      tasks.finish(task, 'done', `${added.toLocaleString()} songs added`);
+      this.toast(`Added ${added.toLocaleString()} songs to ${target.title}`);
+    } catch (e) {
+      tasks.finish(task, 'failed', `Stopped: ${messageOf(e)}`);
+      this.toast(`Importing stopped: ${messageOf(e)}`, true);
+    }
+    await this.refresh();
+  }
+
   goHome() {
+    this.combine = false;
+    this.compare = false;
     this.selected = null;
     this.items = [];
     this.profileOpen = false;
@@ -297,6 +371,8 @@ class Store {
   }
 
   async select(id: string) {
+    this.combine = false;
+    this.compare = false;
     this.selected = id;
     this.loadingItems = true;
     try {
@@ -318,16 +394,24 @@ class Store {
   async runSync() {
     if (this.sync.running) return;
     this.sync = { running: true, done: 0, total: 0, active: [], note: '' };
+    const task = tasks.start({ title: 'Syncing playlists', open: () => this.goHome() });
     try {
-      const r = await runSync((p) => (this.sync = { ...this.sync, done: p.done, total: p.total, active: p.active }));
+      const r = await runSync((p) => {
+        this.sync = { ...this.sync, done: p.done, total: p.total, active: p.active };
+        tasks.patch(task, { done: p.done, total: p.total, detail: `${p.done} of ${p.total} playlists${p.active.length ? `: ${p.active.join(', ')}` : ''}` });
+      });
       this.sync.note = `Synced ${r.synced}` + (r.skipped.length ? `, skipped ${r.skipped.length}: ${r.skipped.map((s) => s.title).join(', ')}` : '');
+      tasks.finish(task, 'done', this.sync.note);
+      this.toast(`Sync finished: ${this.sync.note}`);
       await this.refresh();
     } catch (e) {
       if (e instanceof AuthError) {
         this.connectError = e.message;
         this.phase = 'connect';
+        tasks.finish(task, 'failed', 'Signed out');
       } else {
         this.sync.note = messageOf(e);
+        tasks.finish(task, 'failed', messageOf(e));
         this.toast(messageOf(e), true);
       }
     } finally {

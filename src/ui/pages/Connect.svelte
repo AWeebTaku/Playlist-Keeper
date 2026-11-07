@@ -3,13 +3,13 @@
   import ArrowLeftIcon from 'phosphor-svelte/lib/ArrowLeftIcon';
   import PlugsConnectedIcon from 'phosphor-svelte/lib/PlugsConnectedIcon';
   import { onMount } from 'svelte';
-  import logo from '../assets/logo.png';
-  import { browserChoices, openYoutubeMusic, profilesOf, type BrowserChoice } from '../services/auth';
-  import type { BrowserProfile } from '../services/tauri';
-  import { browserOption } from './browsers';
-  import Dropdown from './Dropdown.svelte';
-  import type { DropdownOption } from './dropdown';
-  import { store } from './store.svelte';
+  import logo from '../../assets/logo.png';
+  import { browserChoices, openYoutubeMusic, profilesOf, type BrowserChoice } from '../../services/auth';
+  import type { BrowserProfile } from '../../services/tauri';
+  import { browserOption } from '../components/browsers';
+  import Dropdown from '../components/Dropdown.svelte';
+  import type { DropdownOption } from '../components/dropdown';
+  import { store } from '../state/store.svelte';
 
   let { modal = false }: { modal?: boolean } = $props();
   let choices = $state<BrowserChoice[]>([]);

@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { store } from './store.svelte';
+  import { store } from '../state/store.svelte';
 
   let changedOnly = $state(true);
   const LIMIT = 300;

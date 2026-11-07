@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { continuationToken, isSignedOut, parseAccountMenu, parseDuration, parseLibraryPlaylists, parseTracks } from './parse';
+import { continuationToken, isSignedOut, parseAccountMenu, parseDuration, parseLibraryPlaylists, parseTracks, parseWebStates } from './parse';
 
 const run = (text: string, navigationEndpoint?: object) => ({ text, ...(navigationEndpoint ? { navigationEndpoint } : {}) });
 const page = (pageType: string) => ({ browseEndpoint: { browseEndpointContextSupportedConfigs: { browseEndpointContextMusicConfig: { pageType } } } });
@@ -89,5 +89,22 @@ describe('parseAccountMenu', () => {
     expect(parseAccountMenu(menu({ accountName: { simpleText: 'Only Name' } }))).toEqual({ name: 'Only Name', handle: null, photo: null });
     expect(parseAccountMenu(menu({ accountName: { runs: [run('X')] }, accountPhoto: { thumbnails: [{ url: 'http://insecure/p' }] } }))!.photo).toBeNull();
     expect(parseAccountMenu({})).toBeNull();
+  });
+});
+
+describe('parseWebStates (youtube.com playlist page)', () => {
+  const v = (videoId: string, title: string, isPlayable?: boolean) => ({ playlistVideoRenderer: { videoId, title: { runs: [{ text: title }] }, ...(isPlayable === undefined ? {} : { isPlayable }) } });
+  const wrap = (...rows: object[]) => ({ contents: { playlistVideoListRenderer: { contents: rows } } });
+  it('tells playable, deleted, private and blocked videos apart', () => {
+    const m = parseWebStates(wrap(v('a', 'Fine song', true), v('b', '[Deleted video]'), v('c', '[Private video]', false), v('d', 'Blocked here', false), v('e', 'Plays')));
+    expect([...m]).toEqual([['a', 'ok'], ['b', 'unavailable'], ['c', 'unavailable'], ['d', 'unavailable'], ['e', 'ok']]);
+  });
+  it('counts a video listed twice as playable if any copy is, and reads continuation pages', () => {
+    expect(parseWebStates(wrap(v('a', '[Deleted video]'), v('a', 'Real title', true))).get('a')).toBe('ok');
+    const more = { onResponseReceivedActions: [{ appendContinuationItemsAction: { continuationItems: [v('z', 'Later page', true)] } }] };
+    expect(parseWebStates(more).get('z')).toBe('ok');
+  });
+  it('returns nothing for a page without playlist videos', () => {
+    expect(parseWebStates({ contents: {} }).size).toBe(0);
   });
 });

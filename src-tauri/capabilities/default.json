@@ -16,6 +16,8 @@
     "allow-default-browser",
     "allow-http-fetch",
     "allow-update-support",
+    "allow-save-json-file",
+    "allow-open-json-file",
     "sql:allow-load",
     "sql:allow-execute",
     "sql:allow-select",

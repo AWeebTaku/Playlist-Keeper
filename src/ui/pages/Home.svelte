@@ -8,10 +8,10 @@
   import QueueIcon from 'phosphor-svelte/lib/QueueIcon';
   import MagnifyingGlassIcon from 'phosphor-svelte/lib/MagnifyingGlassIcon';
   import WarningIcon from 'phosphor-svelte/lib/WarningIcon';
-  import Avatar from './Avatar.svelte';
-  import Cover from './Cover.svelte';
-  import { store } from './store.svelte';
-  import { ago, coverUrls } from './util';
+  import Avatar from '../components/Avatar.svelte';
+  import Cover from '../components/Cover.svelte';
+  import { store } from '../state/store.svelte';
+  import { ago, coverUrls } from '../state/util';
 
   const DAY = 86400;
   const visible = $derived(store.playlists.filter((p) => !p.hidden));

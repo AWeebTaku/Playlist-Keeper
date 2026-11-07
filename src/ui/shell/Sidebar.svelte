@@ -1,5 +1,7 @@
 <script lang="ts">
   import ArrowsClockwiseIcon from 'phosphor-svelte/lib/ArrowsClockwiseIcon';
+  import ArrowsLeftRightIcon from 'phosphor-svelte/lib/ArrowsLeftRightIcon';
+  import ArrowsMergeIcon from 'phosphor-svelte/lib/ArrowsMergeIcon';
   import CardsIcon from 'phosphor-svelte/lib/CardsIcon';
   import CircleNotchIcon from 'phosphor-svelte/lib/CircleNotchIcon';
   import EyeIcon from 'phosphor-svelte/lib/EyeIcon';
@@ -9,10 +11,10 @@
   import ListDashesIcon from 'phosphor-svelte/lib/ListDashesIcon';
   import MagnifyingGlassIcon from 'phosphor-svelte/lib/MagnifyingGlassIcon';
   import SquaresFourIcon from 'phosphor-svelte/lib/SquaresFourIcon';
-  import logo from '../assets/logo.png';
+  import logo from '../../assets/logo.png';
   import PlaylistList from './PlaylistList.svelte';
-  import Segmented from './Segmented.svelte';
-  import { store } from './store.svelte';
+  import Segmented from '../components/Segmented.svelte';
+  import { store } from '../state/store.svelte';
 
   const VIEWS = [
     { value: 'list', title: 'List with covers', icon: ListBulletsIcon },
@@ -52,6 +54,8 @@
       </button>
     </div>
   </div>
-  <button class="nav-home" class:on={store.selected === null} style="margin: 0 10px 2px; width: calc(100% - 20px)" onclick={() => store.goHome()}><HouseIcon size={20} weight={store.selected === null ? 'fill' : 'regular'} /> Home</button>
+  <button class="nav-home" class:on={store.selected === null && !store.combine && !store.compare} style="margin: 0 10px 2px; width: calc(100% - 20px)" onclick={() => store.goHome()}><HouseIcon size={20} weight={store.selected === null && !store.combine && !store.compare ? 'fill' : 'regular'} /> Home</button>
+  <button class="nav-home" class:on={store.combine} style="margin: 0 10px 6px; width: calc(100% - 20px)" onclick={() => store.openCombine()}><ArrowsMergeIcon size={20} weight={store.combine ? 'fill' : 'regular'} /> Combine playlists</button>
+  <button class="nav-home" class:on={store.compare} style="margin: 0 10px 6px; width: calc(100% - 20px)" onclick={() => store.openCompare()}><ArrowsLeftRightIcon size={20} weight={store.compare ? 'fill' : 'regular'} /> Compare playlists</button>
   <PlaylistList />
 </aside>

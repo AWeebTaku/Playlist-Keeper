@@ -10,6 +10,8 @@ import { syncPlaylist, type YtReader } from './sync';
 export interface YtClient extends YtReader {
   search(query: string, type?: 'song' | 'video'): Promise<Hit[]>;
   addVideos(playlistId: string, videoIds: string[]): Promise<void>;
+  /** Create a private playlist holding `videoIds` (may be many); returns its id. */
+  createPlaylist(title: string, videoIds: string[]): Promise<string>;
   removeEntries(playlistId: string, setVideoIds: string[]): Promise<void>;
 }
 

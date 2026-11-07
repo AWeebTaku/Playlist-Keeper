@@ -8,10 +8,10 @@
   import PlugsConnectedIcon from 'phosphor-svelte/lib/PlugsConnectedIcon';
   import SignOutIcon from 'phosphor-svelte/lib/SignOutIcon';
   import SunIcon from 'phosphor-svelte/lib/SunIcon';
-  import Avatar from './Avatar.svelte';
-  import Segmented from './Segmented.svelte';
-  import { updateHow } from '../services/updater';
-  import { store } from './store.svelte';
+  import Avatar from '../components/Avatar.svelte';
+  import Segmented from '../components/Segmented.svelte';
+  import { updateHow } from '../../services/updater';
+  import { store } from '../state/store.svelte';
 
   let button = $state<HTMLButtonElement>();
   const THEMES = [

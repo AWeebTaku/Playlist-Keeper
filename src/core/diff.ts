@@ -1,4 +1,4 @@
-import type { Status, Track } from './types';
+import type { Status, Track, WebStatus } from './types';
 
 /** What the snapshot already knows about one playlist entry. */
 export interface Stored {
@@ -14,6 +14,8 @@ interface Upsert {
   /** Overwrite title/artists/album/duration. False for greyed-out entries that were already saved. */
   snapshot: boolean;
   track: Track;
+  /** Availability on youtube.com, or null when that list was not read. */
+  web: WebStatus | null;
 }
 
 export interface Diff {
@@ -26,7 +28,7 @@ export interface Diff {
  * Compare a fresh playlist listing with the stored snapshot. A greyed-out or title-less entry is
  * marked unavailable and never overwrites a good saved title (that is how lost tracks stay identifiable).
  */
-export function diffTracks(stored: Iterable<Stored>, fresh: Track[]): Diff {
+export function diffTracks(stored: Iterable<Stored>, fresh: Track[], web?: Map<string, 'ok' | 'unavailable'> | null): Diff {
   const known = new Map<string, Stored>();
   for (const s of stored) known.set(s.videoId, s);
   const seen = new Set<string>();
@@ -43,6 +45,7 @@ export function diffTracks(stored: Iterable<Stored>, fresh: Track[]): Diff {
       setVideoId: track.setVideoId ?? null,
       snapshot: isNew || !bad,
       track,
+      web: web ? (web.get(track.videoId) ?? 'missing') : null,
     });
   });
   const removed = [...known.values()].filter((s) => (s.status === 'ok' || s.status === 'unavailable') && !seen.has(s.videoId)).map((s) => s.videoId);

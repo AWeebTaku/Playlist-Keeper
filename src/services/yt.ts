@@ -7,7 +7,7 @@ import type { Hit } from '../core/full';
 import type { Track } from '../core/types';
 import { AuthError, asAuthError } from './errors';
 import { rustFetch } from './http';
-import { continuationToken, isSignedOut, parseAccountMenu, parseLibraryPlaylists, parseTracks, type LibraryPlaylist, type Profile } from './parse';
+import { continuationToken, isSignedOut, parseAccountMenu, parseLibraryPlaylists, parseTracks, parseWebStates, type LibraryPlaylist, type Profile } from './parse';
 import type { YtReader } from './sync';
 
 const baseOptions = () => ({ fetch: rustFetch as typeof fetch, retrieve_player: false });
@@ -19,9 +19,9 @@ const joinNames = (xs?: { name?: string }[]) => (xs ?? []).map((a) => a.name).fi
 export class Yt implements YtReader {
   constructor(private readonly yt: Innertube) {}
 
-  private async browse(body: { browseId: string } | { continuation: string }): Promise<unknown> {
+  private async browse(body: { browseId: string } | { continuation: string }, client: 'YTMUSIC' | 'WEB' = 'YTMUSIC'): Promise<unknown> {
     try {
-      const r = await this.yt.actions.execute('/browse', { ...body, client: 'YTMUSIC', parse: false });
+      const r = await this.yt.actions.execute('/browse', { ...body, client, parse: false });
       if (isSignedOut(r.data)) throw new AuthError('YouTube did not accept this login (it answered as signed out).');
       return r.data;
     } catch (e) {
@@ -30,11 +30,11 @@ export class Yt implements YtReader {
   }
 
   /** Read a browse page and all its continuations. */
-  private async pages(first: string, each: (page: unknown) => void): Promise<void> {
-    let page = await this.browse({ browseId: first });
+  private async pages(first: string, each: (page: unknown) => void, client: 'YTMUSIC' | 'WEB' = 'YTMUSIC'): Promise<void> {
+    let page = await this.browse({ browseId: first }, client);
     each(page);
     for (let token = continuationToken(page); token; token = continuationToken(page)) {
-      page = await this.browse({ continuation: token });
+      page = await this.browse({ continuation: token }, client);
       each(page);
     }
   }
@@ -61,6 +61,21 @@ export class Yt implements YtReader {
     return out;
   }
 
+  /**
+   * The same playlist as youtube.com lists it, to tell "greyed out on Music only" from "gone everywhere". Never fails the
+   * sync: null means it could not be read (auto-generated mixes, offline, a page layout change), and callers keep what they had.
+   */
+  async playlistWebStates(id: string): Promise<Map<string, 'ok' | 'unavailable'> | null> {
+    const webId = id === 'LM' ? 'LL' : id.replace(/^VL/u, ''); // Liked Music is the "Liked videos" list on youtube.com
+    const out = new Map<string, 'ok' | 'unavailable'>();
+    try {
+      await this.pages(`VL${webId}`, (p) => parseWebStates(p).forEach((v, k) => { if (!out.has(k)) out.set(k, v); }), 'WEB');
+    } catch {
+      return null;
+    }
+    return out.size ? out : null;
+  }
+
   async search(query: string, type: 'song' | 'video' = 'song'): Promise<Hit[]> {
     try {
       const res = await this.yt.music.search(query, { type });
@@ -75,7 +90,21 @@ export class Yt implements YtReader {
 
   async addVideos(playlistId: string, videoIds: string[]): Promise<void> {
     try {
-      await this.yt.playlist.addVideos(playlistId, videoIds);
+      // same request as youtubei.js's playlist.addVideos, but the answer is checked: YouTube can refuse with a 200
+      const r = await this.yt.actions.execute('/browse/edit_playlist', { playlistId, actions: videoIds.map((id) => ({ action: 'ACTION_ADD_VIDEO', addedVideoId: id })), parse: false });
+      const status = (r.data as { status?: string } | undefined)?.status;
+      if (!r.success || (status && status !== 'STATUS_SUCCEEDED')) throw new Error(`YouTube did not add the songs${status ? ` (${status})` : ''}.`);
+    } catch (e) {
+      throw asAuthError(e);
+    }
+  }
+
+  async createPlaylist(title: string, videoIds: string[]): Promise<string> {
+    try {
+      const r = await this.yt.actions.execute('/playlist/create', { title, privacyStatus: 'PRIVATE', videoIds, parse: false });
+      const id = (r.data as { playlistId?: string } | undefined)?.playlistId;
+      if (!r.success || !id) throw new Error('YouTube did not create the playlist.');
+      return id;
     } catch (e) {
       throw asAuthError(e);
     }
