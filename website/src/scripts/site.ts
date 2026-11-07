@@ -86,8 +86,10 @@ function tabs(group: string, attr: string, show: (v: string) => void) {
 }
 const CAPS: Record<string, string> = {
   home: 'The Home page lists the playlists that need attention first.',
-  items: 'Every track, with its status and a one-click "Find replacement".',
-  short: 'Clips that are a cut of a longer song, with the full version one click away.',
+  items: 'Every track numbered, with its status and a one-click "Find replacement".',
+  filters: 'Search and filter by title, artist, album, length and status.',
+  combine: 'Choose playlists, set their order, and copy them into a new playlist.',
+  compare: 'Two playlists side by side, with a mark on every position that differs.',
 };
 tabs('#shots-tabs', 'pane', (v) => {
   $('.gallery .pane').forEach((p) => p.classList.toggle('on', p.id === `pane-${v}`));

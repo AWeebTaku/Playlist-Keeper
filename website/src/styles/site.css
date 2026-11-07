@@ -189,8 +189,8 @@ section { padding: clamp(56px, 9vw, 110px) 0; position: relative; }
 .steps b { display: block; font-weight: 600; } .steps span { color: var(--mut); font-size: 15.5px; }
 
 /* screenshots */
-.tabs { display: inline-flex; gap: 4px; padding: 4px; border: 1px solid var(--line); border-radius: var(--pill); background: var(--surface); }
-.tabs button { display: inline-flex; align-items: center; gap: 8px; min-height: 38px; padding: 0 18px; border: 0; border-radius: var(--pill); background: transparent; color: var(--mut); font-weight: 500; transition: color 0.2s, background 0.25s; }
+.tabs { display: inline-flex; max-width: 100%; overflow-x: auto; scrollbar-width: none; gap: 4px; padding: 4px; border: 1px solid var(--line); border-radius: var(--pill); background: var(--surface); }
+.tabs button { flex: none; display: inline-flex; align-items: center; gap: 8px; min-height: 38px; padding: 0 18px; border: 0; border-radius: var(--pill); background: transparent; color: var(--mut); font-weight: 500; transition: color 0.2s, background 0.25s; }
 .tabs button:hover { color: var(--fg); }
 .tabs button[aria-selected='true'] { background: linear-gradient(135deg, var(--grad-a), var(--grad-b)); color: var(--on-accent); }
 .gallery .window { --rx: 0deg; margin-top: 26px; transform: none; }

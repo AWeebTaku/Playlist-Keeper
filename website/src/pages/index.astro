@@ -11,7 +11,10 @@ import search from '@phosphor-icons/core/assets/regular/magnifying-glass.svg?raw
 import timer from '@phosphor-icons/core/assets/regular/timer.svg?raw';
 import dupes from '@phosphor-icons/core/assets/regular/cards.svg?raw';
 import swap from '@phosphor-icons/core/assets/regular/arrows-left-right.svg?raw';
-import broom from '@phosphor-icons/core/assets/regular/broom.svg?raw';
+import merge from '@phosphor-icons/core/assets/regular/arrows-merge.svg?raw';
+import funnel from '@phosphor-icons/core/assets/regular/funnel.svg?raw';
+import exportIcon from '@phosphor-icons/core/assets/regular/export.svg?raw';
+import queue from '@phosphor-icons/core/assets/regular/queue.svg?raw';
 import warn from '@phosphor-icons/core/assets/fill/warning-circle-fill.svg?raw';
 import check from '@phosphor-icons/core/assets/fill/check-circle-fill.svg?raw';
 import lock from '@phosphor-icons/core/assets/regular/lock-key.svg?raw';
@@ -32,12 +35,15 @@ const SITE = 'https://aweebtaku.github.io/Playlist-Keeper/';
 const title = 'Playlist Keeper: never lose a YouTube Music song again';
 const desc = 'Free, open-source desktop app (Windows, macOS, Linux) that keeps a local history of your YouTube Music playlists, so removed and greyed-out songs can be found and replaced.';
 const features = [
-  { i: clock, t: 'Remembers every song', p: 'Each sync is saved on your computer. When YouTube greys a track out or deletes it, you still see its title and artist.' },
+  { i: clock, t: 'Remembers every song', p: 'Each sync is saved on your computer. When a track is greyed out or deleted, you still see its title and artist, and whether it still plays on youtube.com.' },
   { i: search, t: 'Finds replacements', p: 'Ranks candidates by title, artist and length, so the right version is one click away. Nothing changes until you confirm.' },
-  { i: timer, t: 'Full-length versions', p: 'Playlist full of 30-second clips? Find the real song and add it, keeping or replacing the short one.' },
+  { i: timer, t: 'Full-length versions', p: 'Set a length filter to spot short clips, then find the real song and add it, keeping or replacing the clip.' },
   { i: dupes, t: 'Smart duplicate finder', p: 'Same song twice, told apart from covers, remixes, lyric videos and slowed versions, which are never grouped.' },
-  { i: swap, t: 'Compare playlists', p: 'See where else a track already lives, or what differs between two playlists.' },
-  { i: broom, t: 'Tidy titles', p: 'Preview a clean-up of "(Official Video)" style clutter before anything is renamed.' },
+  { i: swap, t: 'Compare side by side', p: 'Two playlists next to each other, position by position. Hide a song and the rest line up again, and see if it is anywhere else.' },
+  { i: merge, t: 'Combine playlists', p: 'Pick playlists, set their order, and copy them into a new private playlist. Duplicates and unavailable songs are left out, and big lists split at 5,000.' },
+  { i: funnel, t: 'Search and filter', p: 'Search title, artist and album together, filter by length and status, and sort. Every track is numbered, even in a 5,000-song playlist.' },
+  { i: exportIcon, t: 'Export and import', p: 'Save a playlist to a readable JSON file, or add the songs of a file to a playlist. A backup you can open in any editor.' },
+  { i: queue, t: 'Works in the background', p: 'Start a sync or a combine and go elsewhere. A small indicator shows progress and takes you back when it is done.' },
 ];
 ---
 
@@ -185,12 +191,14 @@ const features = [
             <div class="tabs" role="tablist" aria-label="Screens" id="shots-tabs">
               <button role="tab" aria-selected="true" data-pane="home">Home</button>
               <button role="tab" aria-selected="false" data-pane="items">Playlist</button>
-              <button role="tab" aria-selected="false" data-pane="short">Short tracks</button>
+              <button role="tab" aria-selected="false" data-pane="filters">Filters</button>
+              <button role="tab" aria-selected="false" data-pane="combine">Combine</button>
+              <button role="tab" aria-selected="false" data-pane="compare">Compare</button>
             </div>
           </div>
           <div class="window reveal" style="--d: 1">
             <div class="bar"><i></i><i></i><i></i><span>Playlist Keeper</span></div>
-            {[['home', 'The Home page lists the playlists that need attention first.'], ['items', 'Every track, with its status and a one-click "Find replacement".'], ['short', 'Clips that are a cut of a longer song, with the full version one click away.']].map(([k, c], n) => (
+            {[['home', 'The Home page lists the playlists that need attention first.'], ['items', 'Every track numbered, with its status and a one-click "Find replacement".'], ['filters', 'Search and filter by title, artist, album, length and status.'], ['combine', 'Choose playlists, set their order, and copy them into a new playlist.'], ['compare', 'Two playlists side by side, with a mark on every position that differs.']].map(([k, c], n) => (
               <div class={`pane shot ${n === 0 ? 'on' : ''}`} id={`pane-${k}`} role="tabpanel">
                 <img class="dark" src={`${base}/img/${k}-dark.webp`} alt={`${c} (dark theme)`} width="1360" height="860" loading="lazy" />
                 <img class="light" src={`${base}/img/${k}-light.webp`} alt={`${c} (light theme)`} width="1360" height="860" loading="lazy" />
@@ -286,6 +294,8 @@ const features = [
           <div class="faq reveal" style="--d: 1">
             <details><summary>Is it official?</summary><div class="a">No. Playlist Keeper is an independent project and is not affiliated with or endorsed by YouTube or Google. YouTube and YouTube Music are trademarks of Google LLC.</div></details>
             <details><summary>Is it safe? Does it change my playlists?</summary><div class="a">It only reads your playlists while syncing. Anything that changes YouTube (adding, replacing or removing a track) happens after you press a button and, for replace and remove, confirm a dialog.</div></details>
+            <details><summary>How does it know a song is unavailable?</summary><div class="a">It reads each playlist from YouTube Music and again from youtube.com. A song greyed out on Music can still play on youtube.com, and the app shows which of the two it is, so a missing song is not always a lost one.</div></details>
+            <details><summary>What happens to my playlists when I combine them?</summary><div class="a">Nothing. Combining creates a new private playlist and copies songs into it. The playlists you chose are only read, and you name the new one before anything is created.</div></details>
             <details><summary>How does it sign in?</summary><div class="a">It reads the YouTube cookies of a browser that is already signed in to YouTube Music (Firefox, Chrome, Edge, Brave and others), or you can paste a cookie yourself. It never asks for your Google password and stores the login in your operating system's keychain.</div></details>
             <details><summary>Why does my computer warn me before opening it?</summary><div class="a">The installers are not code-signed, because certificates cost money every year. The warning is expected; the steps to continue are in the download section. Every release lists SHA256 checksums, and the full source and build logs are public.</div></details>
             <details><summary>How do updates work?</summary><div class="a">The app checks GitHub for a newer release and asks before installing it. Updates are signed and verified. The Arch package is updated through your package manager or by installing the new file.</div></details>

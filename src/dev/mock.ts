@@ -2,7 +2,7 @@
  * Dev-only look-and-feel harness: open the plain Vite page with ?mock=1 and the store is filled with FAKE data
  * (no Tauri, no network, no personal data) so every screen can be rendered in headless Chrome.
  *   ?mock=1&theme=dark|light&view=list|grid|compact|cards&tracks=list|grid&open=<playlist title>&tab=items|clean|dupes
- *   &menu=1&confirm=1&ddopen=1&hidden=1&screen=home|connect|connect-back&empty=1&about=1&combine=1&compare=1&tasks=1&tasksopen=1&big=1
+ *   &menu=1&confirm=1&ddopen=1&hidden=1&screen=home|connect|connect-back&empty=1&about=1&combine=1&combinepick=1&compare=1&sbs=1&tasks=1&tasksopen=1&big=1
  * Compiled out of release builds (only imported under import.meta.env.DEV).
  */
 import type { YtClient } from '../services/actions';
@@ -77,6 +77,7 @@ export function applyMock(store: typeof Store, q: URLSearchParams): void {
   const screen = q.get('screen');
   if (q.has('about')) store.aboutOpen = true;
   if (q.has('combine')) store.openCombine();
+  if (q.has('combinepick')) void import('../ui/pages/combineFlow.svelte').then(({ flow }) => (flow.picked = ['p1', 'p5', 'p3']));
   if (q.has('compare')) store.openCompare();
   if (q.has('tasks')) {
     const run = tasks.start({ title: 'Creating "Road trip, all together"', open: () => store.openCombine(), total: 4200 });
