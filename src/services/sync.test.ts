@@ -34,6 +34,17 @@ describe('syncAll', () => {
     expect((await repo.items('P')).every((i) => i.status === 'ok')).toBe(true); // all came back
   });
 
+  it('drops playlists deleted on YouTube, hidden ones too, but never on an empty library', async () => {
+    const repo = new Repo(memorySql());
+    await syncAll(repo, fake({ H: [T('h', 'Hidden song')], P: [T('p', 'Song')], Q: [T('q', 'Song')] }));
+    await repo.setHidden('H', true);
+    expect((await syncAll(repo, fake({}))).removed).toBe(0);
+    expect((await repo.playlists()).length).toBe(3);
+    expect((await syncAll(repo, fake({ P: [T('p', 'Song')] }))).removed).toBe(2);
+    expect((await repo.playlists()).map((p) => p.id)).toEqual(['P']);
+    expect(await repo.items('H')).toEqual([]);
+  });
+
   it('skips hidden playlists and reports unreadable ones', async () => {
     const repo = new Repo(memorySql());
     await syncAll(repo, fake({ H: [T('h', 'Hidden song')], P: [T('p', 'Song')] }));

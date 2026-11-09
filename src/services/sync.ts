@@ -22,6 +22,8 @@ export interface SyncProgress {
 export interface SyncResult {
   synced: number;
   skipped: { title: string; reason: string }[];
+  /** Playlists deleted on YouTube, dropped from the local copy. */
+  removed: number;
 }
 
 /** Run `fn` over `items` with at most `n` in flight. */
@@ -63,9 +65,19 @@ export async function syncPlaylist(repo: Repo, yt: YtReader, p: { id: string; ti
  */
 export async function syncAll(repo: Repo, yt: YtReader, onProgress?: (p: SyncProgress) => void, concurrency = 3, now = () => Date.now() / 1000): Promise<SyncResult> {
   const hidden = await repo.hiddenIds();
-  const todo = (await yt.libraryPlaylists()).filter((p) => !hidden.has(p.id));
+  const library = await yt.libraryPlaylists();
+  const todo = library.filter((p) => !hidden.has(p.id));
   const overrides = await repo.overrides();
-  const result: SyncResult = { synced: 0, skipped: [] };
+  const result: SyncResult = { synced: 0, skipped: [], removed: 0 };
+  // Gone from the library = deleted on YouTube. An empty list is treated as a failed read, like empty tracks below.
+  if (library.length) {
+    const live = new Set(library.map((p) => p.id));
+    for (const p of await repo.playlists()) {
+      if (live.has(p.id)) continue;
+      await repo.forget(p.id);
+      result.removed++;
+    }
+  }
   const active = new Set<string>();
   let done = 0;
   const report = () => onProgress?.({ done, total: todo.length, active: [...active] });
