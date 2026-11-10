@@ -29,7 +29,7 @@ const put = (k: string, v: string) => {
   }
 };
 
-export type PlaylistView = 'list' | 'grid' | 'compact' | 'cards';
+type PlaylistView = 'list' | 'grid' | 'compact' | 'cards';
 const PLAYLIST_VIEWS: PlaylistView[] = ['list', 'grid', 'compact', 'cards'];
 
 /** The cached profile (name, handle, photo URL): not a secret, kept so the avatar shows instantly. */
@@ -302,9 +302,9 @@ class Store {
     this.compare = true;
   }
 
-  /** Save playlists (title, tracks, availability) to a JSON file the user picks. */
-  async exportPlaylists(ids: string[]) {
-    const { text, name, count } = await collectExport(await openRepo(), ids, `Playlist Keeper ${this.appVersion}`.trim());
+  /** Save playlists (title, tracks, availability) to a JSON or CSV file the user picks. */
+  async exportPlaylists(ids: string[], format: 'json' | 'csv' = 'json') {
+    const { text, name, count } = await collectExport(await openRepo(), ids, `Playlist Keeper ${this.appVersion}`.trim(), format);
     if (!count) return this.toast('Nothing to export yet. Press Sync all first.', true);
     const path = await this.attempt(() => saveJsonFile(name, text));
     if (path) this.toast(`Saved ${count} playlist${count > 1 ? 's' : ''} to ${path}`);
@@ -400,7 +400,7 @@ class Store {
         this.sync = { ...this.sync, done: p.done, total: p.total, active: p.active };
         tasks.patch(task, { done: p.done, total: p.total, detail: `${p.done} of ${p.total} playlists${p.active.length ? `: ${p.active.join(', ')}` : ''}` });
       });
-      this.sync.note = `Synced ${r.synced}` + (r.skipped.length ? `, skipped ${r.skipped.length}: ${r.skipped.map((s) => s.title).join(', ')}` : '');
+      this.sync.note = `Synced ${r.synced}` + (r.skipped.length ? `, skipped ${r.skipped.length}: ${r.skipped.map((s) => s.title).join(', ')}` : '') + (r.removed ? `, removed ${r.removed} deleted on YouTube` : '');
       tasks.finish(task, 'done', this.sync.note);
       this.toast(`Sync finished: ${this.sync.note}`);
       await this.refresh();

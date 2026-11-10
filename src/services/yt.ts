@@ -5,9 +5,9 @@
 import { Innertube } from 'youtubei.js/web';
 import type { Hit } from '../core/full';
 import type { Track } from '../core/types';
-import { AuthError, asAuthError } from './errors';
+import { AuthError, FormatError, asAuthError } from './errors';
 import { rustFetch } from './http';
-import { continuationToken, isSignedOut, parseAccountMenu, parseLibraryPlaylists, parseTracks, parseWebStates, type LibraryPlaylist, type Profile } from './parse';
+import { continuationToken, isSignedOut, looksLikeLibraryPage, looksLikePlaylistPage, parseAccountMenu, parseLibraryPlaylists, parseTracks, rawTrackRows, parseWebStates, type LibraryPlaylist, type Profile } from './parse';
 import type { YtReader } from './sync';
 
 const baseOptions = () => ({ fetch: rustFetch as typeof fetch, retrieve_player: false });
@@ -51,13 +51,26 @@ export class Yt implements YtReader {
 
   async libraryPlaylists(): Promise<LibraryPlaylist[]> {
     const out: LibraryPlaylist[] = [];
-    await this.pages('FEmusic_liked_playlists', (p) => out.push(...parseLibraryPlaylists(p)));
+    let first = true;
+    await this.pages('FEmusic_liked_playlists', (p) => {
+      if (first && !looksLikeLibraryPage(p)) throw new FormatError('library page');
+      first = false;
+      out.push(...parseLibraryPlaylists(p));
+    });
     return out;
   }
 
   async playlistTracks(id: string): Promise<Track[]> {
     const out: Track[] = [];
-    await this.pages(id.startsWith('VL') ? id : `VL${id}`, (p) => out.push(...parseTracks(p)));
+    let first = true;
+    let rows = 0;
+    await this.pages(id.startsWith('VL') ? id : `VL${id}`, (p) => {
+      if (first && !looksLikePlaylistPage(p)) throw new FormatError('playlist page');
+      first = false;
+      rows += rawTrackRows(p);
+      out.push(...parseTracks(p));
+    });
+    if (rows && !out.length) throw new FormatError('track rows'); // rows are there but none can be read
     return out;
   }
 

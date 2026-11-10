@@ -1,0 +1,28 @@
+{
+  "responseContext": { "serviceTrackingParams": [{ "service": "GFEEDBACK", "params": [{ "key": "logged_in", "value": "1" }] }] },
+  "contents": { "twoColumnBrowseResultsRenderer": { "secondaryContents": { "sectionListRenderer": { "contents": [{ "musicPlaylistShelfRenderer": {
+    "playlistId": "PLfixture",
+    "contents": [
+      { "musicResponsiveListItemRenderer": {
+        "playlistItemData": { "videoId": "aaaaaaaaaaa", "playlistSetVideoId": "SET1" },
+        "flexColumns": [
+          { "musicResponsiveListItemFlexColumnRenderer": { "text": { "runs": [{ "text": "Song One", "navigationEndpoint": { "watchEndpoint": { "videoId": "aaaaaaaaaaa" } } }] } } },
+          { "musicResponsiveListItemFlexColumnRenderer": { "text": { "runs": [{ "text": "Artist A", "navigationEndpoint": { "browseEndpoint": { "browseId": "UCa", "browseEndpointContextSupportedConfigs": { "browseEndpointContextMusicConfig": { "pageType": "MUSIC_PAGE_TYPE_ARTIST" } } } } }] } } },
+          { "musicResponsiveListItemFlexColumnRenderer": { "text": { "runs": [{ "text": "Album A", "navigationEndpoint": { "browseEndpoint": { "browseId": "MPREa", "browseEndpointContextSupportedConfigs": { "browseEndpointContextMusicConfig": { "pageType": "MUSIC_PAGE_TYPE_ALBUM" } } } } }] } } }
+        ],
+        "fixedColumns": [{ "musicResponsiveListItemFixedColumnRenderer": { "text": { "runs": [{ "text": "3:21" }] } } }]
+      } },
+      { "musicResponsiveListItemRenderer": {
+        "playlistItemData": { "videoId": "bbbbbbbbbbb", "playlistSetVideoId": "SET2" },
+        "musicItemRendererDisplayPolicy": "MUSIC_ITEM_RENDERER_DISPLAY_POLICY_GREY_OUT",
+        "flexColumns": [
+          { "musicResponsiveListItemFlexColumnRenderer": { "text": { "runs": [{ "text": "Song Two" }] } } },
+          { "musicResponsiveListItemFlexColumnRenderer": { "text": { "runs": [{ "text": "Artist B" }] } } },
+          { "musicResponsiveListItemFlexColumnRenderer": { "text": { "runs": [] } } }
+        ],
+        "fixedColumns": [{ "musicResponsiveListItemFixedColumnRenderer": { "text": { "runs": [{ "text": "4:05" }] } } }]
+      } }
+    ],
+    "continuations": [{ "nextContinuationData": { "continuation": "NEXTPAGE" } }]
+  } }] } } } }
+}

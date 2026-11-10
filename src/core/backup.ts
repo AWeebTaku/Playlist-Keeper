@@ -57,11 +57,27 @@ export function buildExport(lists: ExportList[], meta: { app: string; now?: Date
   return `{\n${head.join(',\n')},\n  "playlists": [${list}]\n}\n`;
 }
 
+/** One CSV cell. Quoted when needed; a leading = + - @ gets a ' so a spreadsheet never runs a song title as a formula. */
+const cell = (v: string | number | null): string => {
+  const s = v === null ? '' : String(v);
+  const safe = /^[=+\-@\t\r]/u.test(s) && typeof v === 'string' ? `'${s}` : s;
+  return /[",\r\n]/u.test(safe) ? `"${safe.replace(/"/gu, '""')}"` : safe;
+};
+
+/** The same data as a spreadsheet: one row per track, all playlists in one table. */
+export function buildCsv(lists: ExportList[]): string {
+  const rows = [['playlist', 'position', 'title', 'artists', 'album', 'durationSeconds', 'videoId', 'status', 'youtube', 'url']];
+  for (const l of lists) {
+    [...l.items].sort((a, b) => a.position - b.position).forEach((t, i) => rows.push([l.title, String(i + 1), t.title ?? '', t.artists, t.album ?? '', t.duration === null ? '' : String(t.duration), t.videoId, t.status, t.ytStatus ?? '', `${MUSIC}/watch?v=${t.videoId}`]));
+  }
+  return rows.map((r) => r.map((c) => cell(c)).join(',')).join('\r\n') + '\r\n';
+}
+
 /** A file name for the export: the playlist title made safe, or a generic name for several. */
-export function exportFileName(lists: { title: string }[], today = new Date()): string {
+export function exportFileName(lists: { title: string }[], today = new Date(), ext: 'json' | 'csv' = 'json'): string {
   const stamp = today.toISOString().slice(0, 10);
   const one = lists.length === 1 ? lists[0]!.title.replace(/[^\p{L}\p{N} _.-]+/gu, '').trim().slice(0, 60) : '';
-  return `${one || 'Playlist Keeper playlists'} ${stamp}.json`;
+  return `${one || 'Playlist Keeper playlists'} ${stamp}.${ext}`;
 }
 
 const MAX_PLAYLISTS = 1000;

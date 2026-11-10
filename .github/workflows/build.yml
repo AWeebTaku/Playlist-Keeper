@@ -21,7 +21,8 @@ jobs:
           cache: npm
       - run: npm ci
       - run: npm run check # svelte-check, eslint, colour contrast
-      - run: npm test
+      - run: npm run knip # unused files, exports and dependencies
+      - run: npm run coverage # tests, with a coverage summary in the log
       - run: npm audit --audit-level=high
 
   bundle:

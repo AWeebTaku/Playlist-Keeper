@@ -1,7 +1,7 @@
 import { diffTracks } from '../core/diff';
 import type { Track } from '../core/types';
 import type { Override, Repo } from './db';
-import { AuthError, messageOf } from './errors';
+import { AuthError, FormatError, messageOf } from './errors';
 import type { LibraryPlaylist } from './parse';
 
 /** What sync needs from YouTube (a fake implements this in tests). */
@@ -60,7 +60,7 @@ export async function syncPlaylist(repo: Repo, yt: YtReader, p: { id: string; ti
 
 /**
  * Snapshot every non-hidden playlist. A playlist that cannot be read is skipped and reported (auto-generated
- * mixes have no readable contents); a sign-in problem aborts the whole run.
+ * mixes have no readable contents); a sign-in problem aborts the whole run, and so does a YouTube format nothing can be read from.
  * Safety: an empty answer for a playlist we already know is treated as a failed read, never as "everything was removed".
  */
 export async function syncAll(repo: Repo, yt: YtReader, onProgress?: (p: SyncProgress) => void, concurrency = 3, now = () => Date.now() / 1000): Promise<SyncResult> {
@@ -80,6 +80,7 @@ export async function syncAll(repo: Repo, yt: YtReader, onProgress?: (p: SyncPro
   }
   const active = new Set<string>();
   let done = 0;
+  let format: FormatError | undefined;
   const report = () => onProgress?.({ done, total: todo.length, active: [...active] });
   report();
   await pool(todo, concurrency, async (p) => {
@@ -91,6 +92,7 @@ export async function syncAll(repo: Repo, yt: YtReader, onProgress?: (p: SyncPro
       else result.synced++;
     } catch (e) {
       if (e instanceof AuthError) throw e;
+      if (e instanceof FormatError) format ??= e; // one odd playlist (a generated mix) is only skipped
       result.skipped.push({ title: p.title, reason: messageOf(e) });
     } finally {
       active.delete(p.title);
@@ -98,5 +100,6 @@ export async function syncAll(repo: Repo, yt: YtReader, onProgress?: (p: SyncPro
       report();
     }
   });
+  if (format && !result.synced) throw format; // nothing at all could be read: YouTube changed, not one playlist
   return result;
 }

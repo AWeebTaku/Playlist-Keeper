@@ -1,0 +1,11 @@
+{
+  "contents": { "singleColumnBrowseResultsRenderer": { "tabs": [{ "tabRenderer": { "content": { "sectionListRenderer": { "contents": [{ "gridRenderer": { "items": [
+    { "musicTwoRowItemRenderer": { "title": { "runs": [{ "text": "New playlist" }] } } },
+    { "musicTwoRowItemRenderer": {
+      "title": { "runs": [{ "text": "Road trip" }] },
+      "subtitle": { "runs": [{ "text": "Playlist" }, { "text": " • " }, { "text": "1,204 songs" }] },
+      "navigationEndpoint": { "browseEndpoint": { "browseId": "VLPLfixture" } },
+      "thumbnailRenderer": { "musicThumbnailRenderer": { "thumbnail": { "thumbnails": [{ "url": "https://i.ytimg.com/s.jpg" }, { "url": "https://i.ytimg.com/l.jpg" }] } } }
+    } }
+  ] } }] } } } }] } }
+}

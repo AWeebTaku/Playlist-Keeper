@@ -22,15 +22,13 @@ describe('release plan', () => {
     expect(() => bump([1, 2, 3], 'huge')).toThrow(/unknown bump/u);
   });
 
-  it('pushes build Linux and Windows only; macOS is for minor, major, tags and explicit requests', () => {
-    expect(push(['v0.1.0']).matrix.map((m) => m.name)).toEqual(['linux', 'windows']);
-    expect(push(['v0.1.0']).macos).toBe(false);
+  it('every release, push or manual, builds all three systems', () => {
+    expect(push(['v0.1.0']).matrix.map((m) => m.name)).toEqual(['linux', 'windows', 'macos']);
+    expect(push(['v0.1.0']).macos).toBe(true);
     const dispatch = (inputs: Record<string, unknown>) => plan({ eventName: 'workflow_dispatch', inputs, tags: ['v0.1.4'], baseVersion: base });
-    expect(dispatch({ bump: 'patch' })).toMatchObject({ version: '0.1.5', macos: false });
-    expect(dispatch({ bump: 'patch', macos: 'true' })).toMatchObject({ version: '0.1.5', macos: true });
+    expect(dispatch({ bump: 'patch' })).toMatchObject({ version: '0.1.5', macos: true });
     const minor = dispatch({ bump: 'minor' });
     expect(minor).toMatchObject({ version: '0.2.0', macos: true });
-    expect(minor.matrix.map((m) => m.name)).toEqual(['linux', 'windows', 'macos']);
     expect(minor.matrix.at(-1)).toMatchObject({ os: 'macos-latest', args: '--target universal-apple-darwin' });
     expect(dispatch({ bump: 'major' }).version).toBe('1.0.0');
   });

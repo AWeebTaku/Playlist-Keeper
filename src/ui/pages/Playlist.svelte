@@ -52,6 +52,7 @@
       <div class="banner-actions">
         <button class="btn sm outline" title="Add songs from a JSON file to this playlist" onclick={() => store.importIntoPlaylist(playlist.id)}><UploadSimpleIcon size={16} /> Import</button>
         <button class="btn sm outline" title="Save this playlist to a JSON file" onclick={() => store.exportPlaylists([playlist.id])}><DownloadSimpleIcon size={16} /> Export</button>
+        <button class="btn sm outline" title="Save this playlist as a spreadsheet (CSV)" onclick={() => store.exportPlaylists([playlist.id], 'csv')}><DownloadSimpleIcon size={16} /> CSV</button>
       </div>
     </div>
   </header>

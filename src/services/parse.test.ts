@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { continuationToken, isSignedOut, parseAccountMenu, parseDuration, parseLibraryPlaylists, parseTracks, parseWebStates } from './parse';
+import { continuationToken, isSignedOut, looksLikeLibraryPage, looksLikePlaylistPage, rawTrackRows, parseAccountMenu, parseDuration, parseLibraryPlaylists, parseTracks, parseWebStates } from './parse';
 
 const run = (text: string, navigationEndpoint?: object) => ({ text, ...(navigationEndpoint ? { navigationEndpoint } : {}) });
 const page = (pageType: string) => ({ browseEndpoint: { browseEndpointContextSupportedConfigs: { browseEndpointContextMusicConfig: { pageType } } } });
@@ -106,5 +106,18 @@ describe('parseWebStates (youtube.com playlist page)', () => {
   });
   it('returns nothing for a page without playlist videos', () => {
     expect(parseWebStates({ contents: {} }).size).toBe(0);
+  });
+});
+
+describe('health check', () => {
+  it('knows a playlist page from one in a changed layout, and an empty playlist from a broken one', () => {
+    expect(looksLikePlaylistPage({ contents: { musicPlaylistShelfRenderer: { contents: [item({ id: 'a' })] } } })).toBe(true);
+    expect(looksLikePlaylistPage({ header: { musicDetailHeaderRenderer: {} } })).toBe(true); // empty playlist: header only
+    expect(looksLikePlaylistPage({ contents: { somethingNew: { rows: [item({ id: 'a' })] } } })).toBe(false);
+  });
+  it('counts rows even when none can be read, and finds the library tiles', () => {
+    expect(rawTrackRows({ contents: { musicPlaylistShelfRenderer: { contents: [item({ title: 'no id' })] } } })).toBe(1);
+    expect(looksLikeLibraryPage({ items: [{ musicTwoRowItemRenderer: {} }] })).toBe(true);
+    expect(looksLikeLibraryPage({ items: [{ somethingNew: {} }] })).toBe(false);
   });
 });

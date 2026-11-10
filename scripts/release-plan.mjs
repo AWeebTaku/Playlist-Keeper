@@ -1,6 +1,6 @@
 // Decides what a workflow run should release. Pure logic in plan(); the CLI part reads git tags and writes GitHub outputs.
-//   push to a branch     -> next patch after the latest v* tag (first release = the committed version), Linux + Windows
-//   manual run           -> chosen bump (patch|minor|major); macOS for minor/major or when asked; dry_run builds Linux only
+//   push to a branch     -> next patch after the latest v* tag (first release = the committed version), all three systems
+//   manual run           -> chosen bump (patch|minor|major), all three systems; dry_run builds Linux only
 //   push of a v* tag     -> exactly that version, all three systems
 import { appendFileSync, readFileSync } from 'node:fs';
 import { execFileSync } from 'node:child_process';
@@ -41,7 +41,7 @@ export function plan({ eventName, refType = 'branch', refName = '', inputs = {},
   const latest = latestVersion(tags);
   const previousTag = latest ? `v${format(latest)}` : null;
   let version;
-  let macos = false;
+  let macos = true; // every release is a full release
   let kind = 'patch';
   const dryRun = eventName === 'workflow_dispatch' && truthy(inputs.dry_run);
 
@@ -49,7 +49,6 @@ export function plan({ eventName, refType = 'branch', refName = '', inputs = {},
     const v = parseTag(refName);
     if (!v) throw new Error(`tag "${refName}" is not of the form vMAJOR.MINOR.PATCH`);
     version = format(v);
-    macos = true; // a tag you push yourself is a full release
     kind = 'tag';
     const before = tags.map(parseTag).filter(Boolean).filter((x) => compare(x, v) < 0).sort(compare).at(-1);
     return finish(version, before ? `v${format(before)}` : null, macos, dryRun, kind);
@@ -59,7 +58,6 @@ export function plan({ eventName, refType = 'branch', refName = '', inputs = {},
   if (base.length !== 3 || base.some(Number.isNaN)) throw new Error(`base version "${baseVersion}" is not MAJOR.MINOR.PATCH`);
   if (eventName === 'workflow_dispatch') {
     kind = String(inputs.bump || 'patch');
-    macos = kind !== 'patch' || truthy(inputs.macos);
   }
   if (!latest && kind === 'patch') version = format(base); // very first release: the committed version
   else version = format(bump(latest ?? base, kind));
@@ -80,7 +78,7 @@ if (import.meta.url === `file://${process.argv[1]}`) {
     eventName: env.EVENT_NAME ?? 'push',
     refType: env.REF_TYPE,
     refName: env.REF_NAME,
-    inputs: { bump: env.INPUT_BUMP, macos: env.INPUT_MACOS, dry_run: env.INPUT_DRY_RUN },
+    inputs: { bump: env.INPUT_BUMP, dry_run: env.INPUT_DRY_RUN },
     tags,
     baseVersion,
   });

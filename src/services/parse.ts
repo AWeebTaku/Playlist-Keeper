@@ -100,6 +100,17 @@ function playlistEntries(page: Json): Json[] {
   return scopes.flatMap((s) => findAll(s, 'musicResponsiveListItemRenderer'));
 }
 
+const PLAYLIST_PAGE = ['musicPlaylistShelfRenderer', 'musicPlaylistShelfContinuation', 'appendContinuationItemsAction', 'musicResponsiveHeaderRenderer', 'musicEditablePlaylistDetailHeaderRenderer', 'musicDetailHeaderRenderer', 'musicImmersiveHeaderRenderer'];
+
+/** Health check: does a playlist page contain any part of the layout we know (an empty playlist still has a header)? */
+export const looksLikePlaylistPage = (page: Json): boolean => PLAYLIST_PAGE.some((k) => findAll(page, k).length > 0);
+
+/** Health check: how many track rows the page holds before any of them is read (rows we cannot read show as a gap to parseTracks). */
+export const rawTrackRows = (page: Json): number => playlistEntries(page).length;
+
+/** Health check: the library page always has at least the "New playlist" tile. */
+export const looksLikeLibraryPage = (page: Json): boolean => findAll(page, 'musicTwoRowItemRenderer').length > 0;
+
 export const parseTracks = (page: Json): Track[] =>
   playlistEntries(page)
     .map(parseTrack)

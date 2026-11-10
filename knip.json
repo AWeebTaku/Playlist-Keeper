@@ -1,1 +1,1 @@
-{ "ignore": ["website/**"] }
+{ "ignore": ["website/**"], "ignoreDependencies": ["@fontsource-variable/roboto"] }

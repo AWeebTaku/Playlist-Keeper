@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { buildExport, exportFileName, FORMAT, parseExport, type ExportList } from './backup';
+import { buildCsv, buildExport, exportFileName, FORMAT, parseExport, type ExportList } from './backup';
 
 const L: ExportList[] = [
   {
@@ -74,5 +74,16 @@ describe('import validation', () => {
     const s = parseExport(JSON.stringify({ ...ok, playlists: [{ title: '  ', tracks: [{ videoId: 'abcdefghijk', status: 'weird', youtube: 'nope', durationSeconds: 'x' }, { videoId: '../../etc' }, { title: 'no id' }, 5] }] }));
     expect(s[0]!.title).toBe('Imported playlist 1');
     expect(s[0]!.items).toEqual([{ videoId: 'abcdefghijk', title: null, artists: '', duration: null, position: 0, status: 'ok', ytStatus: null }]);
+  });
+});
+
+describe('csv export', () => {
+  it('has a header, one row per track in playlist order, quoted cells, and no spreadsheet formulas', () => {
+    const rows = buildCsv([...L, { id: 'X', title: '=HYPERLINK("evil")', lastSync: null, items: [{ ...L[0]!.items[0]!, title: '-1+1', position: 0 }] }]).split('\r\n');
+    expect(rows[0]).toBe('playlist,position,title,artists,album,durationSeconds,videoId,status,youtube,url');
+    expect(rows[1]).toBe('"Road ""trip"" \u{1F698}",1,"First, with ""quotes""","A, C",Album,61,aaaaaaaaaaa,ok,,https://music.youtube.com/watch?v=aaaaaaaaaaa');
+    expect(rows[2]).toContain(',Second,B,,200,bbbbbbbbbbb,unavailable,ok,');
+    expect(rows[3]).toBe(`"'=HYPERLINK(""evil"")",1,'-1+1,B,,200,bbbbbbbbbbb,unavailable,ok,https://music.youtube.com/watch?v=bbbbbbbbbbb`);
+    expect(exportFileName(L, new Date('2026-11-07T10:00:00Z'), 'csv')).toBe('Playlist Keeper playlists 2026-11-07.csv');
   });
 });

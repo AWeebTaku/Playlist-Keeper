@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest';
 import { memorySql } from '../../tests/nodesql';
 import type { Track } from '../core/types';
 import { Repo } from './db';
-import { AuthError } from './errors';
+import { AuthError, FormatError } from './errors';
 import { syncAll, type YtReader } from './sync';
 
 const T = (videoId: string, title: string | null, o: Partial<Track> = {}): Track => ({ videoId, title, artists: 'Artist', duration: 200, available: true, setVideoId: 's' + videoId, album: null, ...o });
@@ -43,6 +43,15 @@ describe('syncAll', () => {
     expect((await syncAll(repo, fake({ P: [T('p', 'Song')] }))).removed).toBe(2);
     expect((await repo.playlists()).map((p) => p.id)).toEqual(['P']);
     expect(await repo.items('H')).toEqual([]);
+  });
+
+  it('skips one playlist in an odd format, but fails loudly when nothing can be read', async () => {
+    const repo = new Repo(memorySql());
+    const odd = (bad: string[]): YtReader => ({ ...fake({ P: [T('p', 'Song')], Q: [T('q', 'Song')] }), playlistTracks: async (id) => { if (bad.includes(id)) throw new FormatError('x'); return [T(id, 'Song')]; } });
+    const r = await syncAll(repo, odd(['Q']));
+    expect(r).toMatchObject({ synced: 1 });
+    expect(r.skipped).toHaveLength(1);
+    await expect(syncAll(repo, odd(['P', 'Q']))).rejects.toThrow(/format this version cannot read/u);
   });
 
   it('skips hidden playlists and reports unreadable ones', async () => {

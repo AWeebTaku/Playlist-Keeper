@@ -398,10 +398,12 @@ async fn save_json_file(
     content: String,
 ) -> Result<Option<String>, String> {
     use tauri_plugin_dialog::DialogExt;
+    // JSON or CSV, by the suggested name's extension; anything else is saved as JSON
+    let ext = if suggested_name.to_lowercase().ends_with(".csv") { "csv" } else { "json" };
     let Some(chosen) = app
         .dialog()
         .file()
-        .add_filter("JSON", &["json"])
+        .add_filter(ext.to_uppercase(), &[ext])
         .set_file_name(&suggested_name)
         .blocking_save_file()
     else {

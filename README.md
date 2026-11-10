@@ -34,7 +34,7 @@ runs locally; nothing is sent anywhere except to YouTube itself.
 | **Cleanup** | Tidier titles: "(Official Video)", "[Lyrics]", "HD" and similar are removed; remix, cover, slowed, mashup and other versions are kept. Every cleaned name is editable. Cleaned names live only in this app (YouTube cannot rename other people's videos). |
 | **Duplicates** | *Exact* (same video twice), *likely* (same song, version, artist and length, e.g. video vs lyric video) and *possible* (same title, different artist or length; never pre-selected). Covers, remixes, mashups and slowed versions are never grouped with the original. You choose the copy to keep and confirm before anything is removed. |
 | **Combine playlists** | Pick playlists, put them in the order you want, choose the song order (each playlist in turn, last song first, take turns, title A to Z, shuffle), and name the new playlist before anything is created. The chosen playlists are re-read first. Greyed-out songs, songs youtube.com lists as unavailable, repeated videos and (optionally) the same song uploaded twice are left out; covers, remixes and slowed versions are kept. The new playlist is **private**. YouTube allows 5,000 songs per playlist, so a bigger result continues in "Name (2)", "Name (3)" (you can rename them). If it stops halfway, *Try again* carries on without adding anything twice. |
-| **Export and import** | Each playlist has **Export** and **Import** buttons in its banner. *Export* saves that playlist to a readable JSON file: one track per line with title, artist, length, video id, and its status on YouTube Music and on youtube.com. *Import* adds the songs of such a file to the playlist; songs already in it (same video, or same song and version), unavailable songs and repeats are left out, and it asks before adding anything. |
+| **Export and import** | Each playlist has **Export** and **Import** buttons in its banner. *Export* saves that playlist to a readable JSON file: one track per line with title, artist, length, video id, and its status on YouTube Music and on youtube.com. *Import* adds the songs of such a file to the playlist; songs already in it (same video, or same song and version), unavailable songs and repeats are left out, and it asks before adding anything. Each banner also has a **CSV** button (a spreadsheet: one row per track), and the Home page has **Export all (JSON)** and **Export all (CSV)** for your whole saved library. CSV cells that start with `=`, `+`, `-` or `@` get a leading `'` so a spreadsheet never runs a song title as a formula. |
 | **Sidebar** | A full-width **Sync all** button that fills up as it syncs, playlist search, and your playlists in sections: **Playlists**, and below them **Hidden** when "Show hidden" is on. Hide or unhide a playlist with the eye button on its row (hidden playlists are skipped by sync). The **Hidden** button next to the layout buttons shows or hides that section. Four layouts, chosen with the buttons above the list and remembered: **list with covers**, **cover grid**, **compact list** and **detailed cards**. |
 | **Home** | The start page: a greeting, your totals (playlists, tracks saved, greyed out or removed, last synced), a **Needs attention** list of the playlists with the most lost tracks, and a Sync button that stands out when your last sync is more than a day old. Click the logo or **Home** in the sidebar to return to it. |
 | **Profile card** | Your Google account photo and name at the top right. Click it for the **theme** switcher (System, Light, Dark), **Check for updates** (with install and restart when one is available), **Reconnect** (use another browser or account; your current login stays until the new one works) and **Log out** (removes the saved login; your saved playlist history stays on this computer). |
@@ -285,6 +285,8 @@ Exact versions are pinned by `package-lock.json` and `src-tauri/Cargo.lock`; alw
 npm run tauri dev      # run with hot reload
 npm test               # unit tests (Vitest; the database tests use real SQLite via node:sqlite)
 npm run check          # svelte-check + eslint + colour-contrast check of the design tokens
+npm run knip           # unused files, exports and dependencies (CI fails on any)
+npm run coverage       # the tests with a coverage summary (CI prints it; the full lcov report goes to coverage/)
 npm run contrast       # only the contrast check (every text/background colour pair, light and dark, WCAG AA)
 cargo clippy --all-targets -- -D warnings   # run inside src-tauri/
 cargo test --lib                            # run inside src-tauri/
@@ -319,9 +321,9 @@ used (see [Install](#install-and-first-launch) for the first-launch warnings).
 
 | What you do | What happens |
 |---|---|
-| **Push to `master`** with changes to the app (`src/`, `src-tauri/`, `package*.json`, config) | Checks run, then **Linux (deb, rpm, AppImage, Arch package) and Windows (exe, msi)** are built and published as the next patch version (0.1.0, then 0.1.1, 0.1.2, ...), with release notes generated from the commits. |
+| **Push to `master`** with changes to the app (`src/`, `src-tauri/`, `package*.json`, config) | Checks run, then **Linux (deb, rpm, AppImage, Arch package), Windows (exe, msi) and macOS (universal dmg, Apple silicon and Intel)** are built and published as the next patch version (0.1.0, then 0.1.1, 0.1.2, ...), with release notes generated from the commits. |
 | Push only docs, tests, dev tooling or workflow files, or put **`[skip release]`** in the commit message | Nothing is released. |
-| **Actions > release > Run workflow**, pick `minor` or `major` | A full release including **macOS** (universal dmg, Apple silicon and Intel). Tick "Include macOS" to add macOS to a patch release. |
+| **Actions > release > Run workflow**, pick `patch`, `minor` or `major` | The same full release with the bump you chose. |
 | Run workflow with **dry run** ticked | Builds Linux only and attaches the installers to the run; publishes nothing. Use it to test changes to the workflow. |
 | Push a tag `vX.Y.Z` yourself | Exactly that version on all three systems. |
 
@@ -368,6 +370,13 @@ reports that it could not check. To release a specific version by hand: `npm run
 - The only other network access is the update check against your GitHub release feed.
 - Your name, handle and profile photo URL (shown in the profile card) are cached in the app's local storage; they are
   not secrets and are cleared by Reconnect.
+- **Update signing.** Updates are verified with a minisign key pair made by `tauri signer generate`. The public half is in
+  `src-tauri/tauri.conf.json`; the installed app refuses any update not signed by the private half. The private key lives
+  only in `~/.tauri/playlist-keeper.key` on the maintainer's machine and in the GitHub Actions secret
+  `TAURI_SIGNING_PRIVATE_KEY`; it is never committed, never printed in logs, and only the release workflow on this repository
+  reads it. The key has no password. Back it up: if it is lost, installed copies can never be updated again (users would have to
+  reinstall). If it leaks, generate a new pair, replace `plugins.updater.pubkey`, and ship that version as a manual download,
+  because installed apps cannot trust a key they were not built with. This signing is separate from OS code signing, which is not used.
 - No telemetry, no accounts, no server of any kind.
 - The saved copy of your playlists (titles, artists, lengths) is a SQLite file in the app config folder:
   Linux `~/.config/dev.playlistkeeper.app/keeper.db`, macOS `~/Library/Application Support/dev.playlistkeeper.app/`,
@@ -382,6 +391,7 @@ reports that it could not check. To release a specific version by hand: `npm run
 | "firefox is not signed in" / no profile found | Sign in at music.youtube.com in that browser first. Firefox must have been started once; flatpak and snap profiles are searched too. |
 | Chrome on Windows cannot be read | Chrome 127+ blocks it. Use Firefox or paste the cookie. |
 | "YouTube did not accept this login" | The cookie expired or belongs to a different account. Sign in again in the browser, then reconnect. |
+| "YouTube Music answered in a format this version cannot read" | YouTube changed its private API, so nothing could be read and **your saved copy was left untouched**. Check for an app update; if there is none, open an issue. Developers: replace a file in `tests/fixtures/` with a fresh response and run `npm test` (see `tests/fixtures/README.md`). |
 | A playlist is skipped during sync | Auto-generated mixes (their ids start with `RD`, for example a personal mix) have no readable contents. Hide them. |
 | Blank or glitchy window on Linux with some graphics drivers | Start with `WEBKIT_DISABLE_DMABUF_RENDERER=1`. |
 | AppImage will not start | Install `libfuse2`, or run with `--appimage-extract-and-run`. |

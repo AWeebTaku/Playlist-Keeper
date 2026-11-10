@@ -52,6 +52,10 @@
       <div class="step"><span class="ico-wrap"><MagnifyingGlassIcon size={20} weight="bold" /></span><strong>3. Fix them</strong><span class="mut">Find re-uploads, full-length versions and duplicates, then add them with one click.</span></div>
     </section>
   {:else}
+    <div style="display: flex; gap: 8px; justify-content: flex-end; flex-wrap: wrap">
+      <button class="btn sm outline" title="Save every playlist to one JSON file" onclick={() => store.exportPlaylists(store.playlists.map((p) => p.id))}>Export all (JSON)</button>
+      <button class="btn sm outline" title="Save every playlist to one spreadsheet (CSV)" onclick={() => store.exportPlaylists(store.playlists.map((p) => p.id), 'csv')}>Export all (CSV)</button>
+    </div>
     <section class="stats" aria-label="Summary">
       <div class="stat"><span class="ico-wrap"><QueueIcon size={20} /></span><span class="v">{visible.length}</span><span class="l">Playlists</span></div>
       <div class="stat"><span class="ico-wrap"><MusicNotesIcon size={20} /></span><span class="v">{tracks.toLocaleString()}</span><span class="l">Tracks saved</span></div>

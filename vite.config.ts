@@ -7,5 +7,5 @@ export default defineConfig({
   clearScreen: false,
   server: { port: 1420, strictPort: true, host: '127.0.0.1' },
   build: { target: 'es2022', sourcemap: false },
-  test: { include: ['src/**/*.test.ts', 'tests/**/*.test.ts'], environment: 'node' },
+  test: { include: ['src/**/*.test.ts', 'tests/**/*.test.ts'], environment: 'node', coverage: { provider: 'v8', include: ['src/**/*.ts'], exclude: ['src/**/*.test.ts', 'src/dev/**'], reporter: ['text-summary', 'lcov'] } },
 });
