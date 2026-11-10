@@ -8,6 +8,10 @@ tell what it was. Playlist Keeper saves a copy of every entry (title, artist, le
 what disappeared, and helps you replace lost tracks, find duplicates, compare playlists and tidy titles. Everything
 runs locally; nothing is sent anywhere except to YouTube itself.
 
+![Playlist Keeper showing a playlist with greyed-out tracks flagged](docs/screenshot.png)
+
+_Screenshot with made-up playlists (the app's `?mock=1` demo data), not a real account._
+
 > Unofficial. Not affiliated with YouTube or Google. It talks to YouTube Music the same way a browser does, through the
 > account you are already signed in to, so changes in YouTube can break it.
 
@@ -358,6 +362,26 @@ runs (nothing is published). `.github/dependabot.yml` opens weekly pull requests
 npm packages and Rust crates. A local build keeps a placeholder update URL, so "Check for updates" in a local build
 reports that it could not check. To release a specific version by hand: `npm run version:set -- 0.3.0`, commit, `git tag v0.3.0`,
 `git push --follow-tags` (the tag decides the version, so the committed version only matters for local builds).
+
+### Recording real test responses (when YouTube changes its format)
+
+The parsers in `src/services/parse.ts` read YouTube Music's private responses, and `tests/contract.test.ts` checks them against
+saved copies in `tests/fixtures/`. The shipped copies are trimmed by hand to the fields the parsers use. To replace one with a
+real capture, for example after sync reports *"YouTube Music answered in a format this version cannot read"*:
+
+1. Open <https://music.youtube.com> in Chrome or Firefox, signed in, and open developer tools (F12) > **Network**.
+2. Filter by `browse`. Open the page you want to record: **Library > Playlists** for `library-page.json`, or one small playlist
+   (a few songs, one of them greyed out if you have such a playlist) for `playlist-page.json`.
+3. Click the `browse` request that loaded the page, open **Response**, and copy the JSON into the matching file in
+   `tests/fixtures/`.
+4. **Remove personal data before committing**: delete `responseContext`, `trackingParams`, `visitorData`, the profile photo and
+   account menu, and replace your own playlist titles and ids with made-up ones. Keep every field named in `parse.ts`
+   (`musicPlaylistShelfRenderer`, `musicResponsiveListItemRenderer`, `playlistItemData`, `flexColumns`, `fixedColumns`,
+   `musicTwoRowItemRenderer`, and so on). Never paste cookies or request headers.
+5. Run `npm test`. The failing assertion in `tests/contract.test.ts` shows which field moved. Fix `parse.ts`, then update the
+   expected values in the test to match the new file.
+
+Trim playlists to a handful of tracks so the diff stays readable.
 
 ## Security and privacy
 
