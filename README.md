@@ -1,5 +1,9 @@
 # Playlist Keeper
 
+<!-- badges:start -->
+[![Build](https://github.com/AWeebTaku/Playlist-Keeper/actions/workflows/build.yml/badge.svg)](https://github.com/AWeebTaku/Playlist-Keeper/actions/workflows/build.yml) [![Release](https://img.shields.io/github/v/release/AWeebTaku/Playlist-Keeper?display_name=tag)](https://github.com/AWeebTaku/Playlist-Keeper/releases/latest) [![License](https://img.shields.io/badge/license-MIT-green)](https://github.com/AWeebTaku/Playlist-Keeper/blob/main/LICENSE) ![Tauri](https://img.shields.io/badge/Tauri-24C8D8?logo=tauri&logoColor=white) ![Svelte](https://img.shields.io/badge/Svelte-FF3E00?logo=svelte&logoColor=white) ![Rust](https://img.shields.io/badge/Rust-000000?logo=rust&logoColor=white) ![Platform](https://img.shields.io/badge/platform-Windows%20%7C%20macOS%20%7C%20Linux-lightgrey)
+<!-- badges:end -->
+
 A desktop app for Windows, macOS and Linux that keeps a local history of **your own YouTube Music playlists**.
 Website: <https://aweebtaku.github.io/Playlist-Keeper/>
 
